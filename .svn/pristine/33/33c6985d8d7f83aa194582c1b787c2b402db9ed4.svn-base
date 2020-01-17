@@ -1,0 +1,85 @@
+package com.twkj.dao;
+
+import org.apache.ibatis.annotations.*;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author: xianlehuang
+ * @Description:
+ * @date: 2019/12/4 - 10:19
+ */
+public interface UserDao {
+
+    @Select("select * from tb_power_web order by id")
+    public List<Map<String, Object>> power();
+
+    @Select("select u.*, p.POST_NAME, p.POWER_ID, p.POWER_NAME from tb_kp_user u " +
+            " left join TB_POST_WEB p on u.POST_ID=p.id" +
+            " where u.loginname = #{loginname} and u.password = #{password}")
+    List<Map<String, Object>> login(Map<String, Object> map);
+
+//    @Select("select * from TB_POST_WEB where post_name = #{post_name} and power_id = #{power_id} and power_name = #{power_name}")
+    @SelectProvider(type =UserSql.class, method = "findPost")
+    List<Map<String, Object>> findPost(Map<String, Object> map);
+
+    @Insert("insert into TB_POST_WEB (post_name, power_id, power_name) values (#{post_name}, #{power_id}, #{power_name})")
+    Integer addPost(Map<String, Object> map);
+
+    @Update("update TB_POST_WEB set  post_name=#{post_name}, power_id=#{power_id}, power_name=#{power_name} where id=#{id} ")
+    Integer updatePost(Map<String, Object> map);
+
+    @Delete("delete from TB_POST_WEB where id=#{id}")
+    int deletePost(Map<String, Object> map);
+
+    @SelectProvider(type =UserSql.class, method = "findUser")
+    List<Map<String, Object>> findUser(Map<String, Object> map);
+
+    @Insert("insert into tb_kp_user (department, username, password, post_id, loginname, userid) values (#{department}, #{username}, #{password}, #{post_id}, #{loginname}, (select to_number(max(userid))+1 from tb_kp_user))")
+    int addUser(Map<String, Object> map);
+
+    @Update("update tb_kp_user set department=#{department}, username=#{username}, password=#{password}, post_id=#{post_id}, loginname=#{loginname} where id=#{id} ")
+    int updateUser(Map<String, Object> map);
+
+    @Delete("delete from tb_kp_user where id=#{id}")
+    int deleteUser(Map<String, Object> map);
+
+    class UserSql{
+        public String findPost(Map<String, Object> map){
+            String post_name = String.valueOf(map.get("post_name"));
+            String power_id = String.valueOf(map.get("power_id"));
+            String power_name = String.valueOf(map.get("power_name"));
+            String tj="";
+            if(post_name!=null&&!post_name.isEmpty()&&!post_name.equals("null")&&post_name.length()>0){
+                tj += " and a.post_name like '%"+post_name+"%'";
+            }
+            if(power_id!=null&&!power_id.isEmpty()&&!power_id.equals("null")&&power_id.length()>0){
+                tj += " and a.power_id like '%"+power_id+"%'";
+            }
+            if(power_name!=null&&!power_name.isEmpty()&&!power_name.equals("null")&&power_name.length()>0){
+                tj += " and a.power_name like '%"+power_name+"%'";
+            }
+            String sql = "select * from TB_POST_WEB a where 1=1";
+            sql += tj;
+            sql +=" order by a.post_name";
+            return sql;
+        }
+        public String findUser(Map<String, Object> map){
+            String username = String.valueOf(map.get("username"));
+            String department = String.valueOf(map.get("department"));
+            String tj="";
+            if(username!=null&&!username.isEmpty()&&!username.equals("null")&&username.length()>0){
+                tj += " and a.username like '%"+username+"%'";
+            }
+            if(department!=null&&!department.isEmpty()&&!department.equals("null")&&department.length()>0){
+                tj += " and a.department like '%"+department+"%'";
+            }
+            String sql = "select * from TB_KP_USER a where 1=1";
+            sql += tj;
+            sql +=" order by a.username";
+            return sql;
+        }
+    }
+}

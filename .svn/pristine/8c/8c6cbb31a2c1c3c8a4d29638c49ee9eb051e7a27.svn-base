@@ -1,0 +1,528 @@
+package com.twkj.service;
+
+import com.sun.xml.internal.bind.v2.model.core.ID;
+import com.twkj.helper.JacksonUtil;
+import oracle.sql.DATE;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author: xianlehuang
+ * @Description:财务
+ * @date: 2019/12/12 - 16:50
+ */
+@Service
+public class FinanceService {
+    @Autowired
+    protected JdbcTemplate jdbcTemplate;
+
+    private JacksonUtil jacksonUtil = JacksonUtil.buildNormalBinder();
+
+    public String findBusinessTravelApplication(HttpServletRequest request) {
+        String apply_name = request.getParameter("apply_name")==null?"":request.getParameter("apply_name");
+        String department = request.getParameter("department")==null?"":request.getParameter("department");
+        String tj = "";
+        List<Map<String, Object>> list= new ArrayList<Map<String, Object>>();
+        if(apply_name!=null&&!apply_name.isEmpty()&&!apply_name.equals("null")&&apply_name.length()>0){
+            tj += " and a.apply_name like '%"+apply_name+"%'";
+        }
+        if(department!=null&&!department.isEmpty()&&!department.equals("null")&&department.length()>0){
+            tj += " and a.department like '%"+department+"%'";
+        }
+        String status = request.getSession().getAttribute("status") == null?"":String.valueOf(request.getSession().getAttribute("status"));
+        if(status!=null&&!status.isEmpty()&&!status.equals("null")&&status.length()>0){
+            if("1".equals(status)){
+                tj += " and a.DEPARTMENT_HEAD is null";
+            }else if("2".equals(status)){
+                tj += " and a.FINANCIAL_DIRECTOR is null";
+            }else if("3".equals(status)){
+                tj += " and a.GENERAL_MANAGER is null";
+            }else{
+                tj +=" and 1=0";
+            }
+        }
+        String sql = "select a.* from TB_BUSINESS_TRAVEL_APPLICATION a" +
+                " where 1=1 ";
+        sql += tj;
+        sql +=" order by a.ID desc";
+        try {
+            list=jdbcTemplate.queryForList(sql);
+        }catch (Exception e){
+            return jacksonUtil.toJson(list);
+        }
+        for (int i = 0; i < list.size(); i++) {
+            list.get(i).put("APPLY_TIME",list.get(i).get("APPLY_TIME")==null?"":String.valueOf(list.get(i).get("APPLY_TIME")).substring(0,10));
+            list.get(i).put("DATE_TIME",list.get(i).get("DATE_TIME")==null?"":String.valueOf(list.get(i).get("DATE_TIME")).substring(0,10));
+        }
+        //管理权限
+        list=auditList(request, list);
+        return jacksonUtil.toJson(list);
+    }
+
+    public String addBusinessTravelApplication(HttpServletRequest request) {
+        String apply_name = request.getParameter("apply_name")==null?"":request.getParameter("apply_name");
+        String apply_time = request.getParameter("apply_time")==null?"":request.getParameter("apply_time");
+        String department = request.getParameter("department")==null?"":request.getParameter("department");
+        String date_time = request.getParameter("date_time")==null?"":request.getParameter("date_time");
+        String is_advance = request.getParameter("is_advance")==null?"":request.getParameter("is_advance");
+        String cost = request.getParameter("cost")==null?"":request.getParameter("cost");
+        String reason = request.getParameter("reason")==null?"":request.getParameter("reason");
+        String address = request.getParameter("address")==null?"":request.getParameter("address");
+        String remarks = request.getParameter("remarks")==null?"":request.getParameter("remarks");
+        String userid = findUserID(apply_name);
+        int count = 0;
+        String insert = "insert into TB_BUSINESS_TRAVEL_APPLICATION (apply_name,apply_time,department,date_time,is_advance,cost,reason,address,remarks,userid) values" +
+                "('"+apply_name+"',to_date('"+apply_time+"','yyyy-mm-dd'),'"+department+"',to_date('"+date_time+"','yyyy-mm-dd'),'"+is_advance+"','"+cost+"','"+reason+"','"+address+"','"+remarks+"','"+userid+"')";
+        try {
+            count = jdbcTemplate.update(insert);
+        }catch (Exception e){
+            count = 0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String updateBusinessTravelApplication(HttpServletRequest request) {
+        String apply_name = request.getParameter("apply_name")==null?"":request.getParameter("apply_name");
+        String apply_time = request.getParameter("apply_time")==null?"":request.getParameter("apply_time");
+        String department = request.getParameter("department")==null?"":request.getParameter("department");
+        String date_time = request.getParameter("date_time")==null?"":request.getParameter("date_time");
+        String is_advance = request.getParameter("is_advance")==null?"":request.getParameter("is_advance");
+        String cost = request.getParameter("cost")==null?"":request.getParameter("cost");
+        String reason = request.getParameter("reason")==null?"":request.getParameter("reason");
+        String address = request.getParameter("address")==null?"":request.getParameter("address");
+        String remarks = request.getParameter("remarks")==null?"":request.getParameter("remarks");
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        String userid = findUserID(apply_name);
+        int count = 0;
+        try {
+            String update = "update TB_BUSINESS_TRAVEL_APPLICATION set " +
+                    " apply_name='"+apply_name+"'" +
+                    ",apply_time=to_date('"+apply_time+"','yyyy-mm-dd')" +
+                    ",department='"+department+"'" +
+                    ",date_time=to_date('"+date_time+"','yyyy-mm-dd')" +
+                    ",is_advance='"+is_advance+"'" +
+                    ",cost='"+cost+"'" +
+                    ",reason='"+reason+"'" +
+                    ",address='"+address+"'" +
+                    ",remarks='"+remarks+"'" +
+                    ",userid='"+userid+"'" +
+                    " where id='"+id+"'";
+            count = jdbcTemplate.update(update);
+        }catch (Exception e){
+            count = 0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String deleteBusinessTravelApplication(HttpServletRequest request) {
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        int count = 0;
+        String delete = "delete from TB_BUSINESS_TRAVEL_APPLICATION where id='"+id+"'";
+        try {
+            count = jdbcTemplate.update(delete);
+        }catch (Exception e){
+            count = 0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String auditBusinessTravelApplication(HttpServletRequest request) {
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        String type = request.getParameter("type")==null?"":request.getParameter("type");
+        int count = 0;
+        String insert = "";
+        if("1".equals(type)){
+            String general_manager = request.getParameter("general_manager")==null?"":request.getParameter("general_manager");
+            insert += "update TB_BUSINESS_TRAVEL_APPLICATION set " +
+                    " general_manager='"+general_manager+"'" +
+                    " where id='"+id+"'";
+        }else if("2".equals(type)){
+            String financial_director = request.getParameter("financial_director")==null?"":request.getParameter("financial_director");
+            insert += "update TB_BUSINESS_TRAVEL_APPLICATION set " +
+                    " financial_director='"+financial_director+"'" +
+                    " where id='"+id+"'";
+
+        }else if("3".equals(type)){
+            String department_head = request.getParameter("department_head")==null?"":request.getParameter("department_head");
+            insert += "update TB_BUSINESS_TRAVEL_APPLICATION set " +
+                    " department_head='"+department_head+"'" +
+                    " where id='"+id+"'";
+        }
+        try {
+            count = jdbcTemplate.update(insert);
+        }catch (Exception e){
+            count = 0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String findContractSign(HttpServletRequest request) {
+        String contract_number = request.getParameter("contract_number")==null?"":request.getParameter("contract_number");
+        String contract_name = request.getParameter("contract_name")==null?"":request.getParameter("contract_name");
+        String contract_type = request.getParameter("contract_type")==null?"":request.getParameter("contract_type");
+        String content_abstract = request.getParameter("content_abstract")==null?"":request.getParameter("content_abstract");
+        String contract_party_name = request.getParameter("contract_party_name")==null?"":request.getParameter("contract_party_name");
+        String contract_party_contacts = request.getParameter("contract_party_contacts")==null?"":request.getParameter("contract_party_contacts");
+        String contract_party_phone = request.getParameter("contract_party_phone")==null?"":request.getParameter("contract_party_phone");
+        String contract_party_address = request.getParameter("contract_party_address")==null?"":request.getParameter("contract_party_address");
+        String contract_party_legalname = request.getParameter("contract_party_legalname")==null?"":request.getParameter("contract_party_legalname");
+        String contract_party_fax = request.getParameter("contract_party_fax")==null?"":request.getParameter("contract_party_fax");
+        String stime = request.getParameter("stime")==null?"":request.getParameter("stime");
+        String etime = request.getParameter("etime")==null?"":request.getParameter("etime");
+        String tj = "";
+        List<Map<String, Object>> list= new ArrayList<Map<String, Object>>();
+        if(contract_number!=null&&!contract_number.isEmpty()&&!contract_number.equals("null")&&contract_number.length()>0){
+            tj += " and a.contract_number like '%"+contract_number+"%'";
+        }
+        if(contract_name!=null&&!contract_name.isEmpty()&&!contract_name.equals("null")&&contract_name.length()>0){
+            tj += " and a.contract_name like '%"+contract_name+"%'";
+        }
+        if(contract_type!=null&&!contract_type.isEmpty()&&!contract_type.equals("null")&&contract_type.length()>0){
+            tj += " and a.contract_type like '%"+contract_type+"%'";
+        }
+        if(content_abstract!=null&&!content_abstract.isEmpty()&&!content_abstract.equals("null")&&content_abstract.length()>0){
+            tj += " and a.content_abstract like '%"+content_abstract+"%'";
+        }
+        if(contract_party_name!=null&&!contract_party_name.isEmpty()&&!contract_party_name.equals("null")&&contract_party_name.length()>0){
+            tj += " and a.contract_party_name like '%"+contract_party_name+"%'";
+        }
+        if(contract_party_contacts!=null&&!contract_party_contacts.isEmpty()&&!contract_party_contacts.equals("null")&&contract_party_contacts.length()>0){
+            tj += " and a.contract_party_contacts like '%"+contract_party_contacts+"%'";
+        }
+        if(contract_party_phone!=null&&!contract_party_phone.isEmpty()&&!contract_party_phone.equals("null")&&contract_party_phone.length()>0){
+            tj += " and a.contract_party_phone like '%"+contract_party_phone+"%'";
+        }
+        if(contract_party_address!=null&&!contract_party_address.isEmpty()&&!contract_party_address.equals("null")&&contract_party_address.length()>0){
+            tj += " and a.contract_party_address like '%"+contract_party_address+"%'";
+        }
+        if(contract_party_legalname!=null&&!contract_party_legalname.isEmpty()&&!contract_party_legalname.equals("null")&&contract_party_legalname.length()>0){
+            tj += " and a.contract_party_legalname like '%"+contract_party_legalname+"%'";
+        }
+        if(contract_party_fax!=null&&!contract_party_fax.isEmpty()&&!contract_party_fax.equals("null")&&contract_party_fax.length()>0){
+            tj += " and a.contract_party_fax like '%"+contract_party_fax+"%'";
+        }
+        if(stime!=null&&!stime.isEmpty()&&!stime.equals("null")&&stime.length()>0){
+            tj += " and a.SIGN_TIME >= to_date('"+stime+"','yyyy-mm-dd')";
+        }
+        if(etime!=null&&!etime.isEmpty()&&!etime.equals("null")&&etime.length()>0){
+            tj += " and a.SIGN_TIME <= to_date('"+etime+"','yyyy-mm-dd')";
+        }
+        String status = request.getSession().getAttribute("status") == null?"":String.valueOf(request.getSession().getAttribute("status"));
+        if(status!=null&&!status.isEmpty()&&!status.equals("null")&&status.length()>0){
+            if("1".equals(status)){
+                tj += " and a.DEPARTMENT_SIGNATURE is null";
+            }else if("2".equals(status)){
+                tj += " and a.FINANCE_SIGNATURE is null";
+            }else if("3".equals(status)){
+                tj += " and a.GENERAL_MANAGER_SIGNATURE is null";
+            }else{
+                tj += " and 1=0";
+            }
+        }
+        String sql = "select a.* from TB_CONTRACT_SIGN a" +
+                " where 1=1 ";
+        sql += tj;
+        sql +=" order by a.ID desc";
+        try {
+            list=jdbcTemplate.queryForList(sql);
+        }catch (Exception e){
+            return jacksonUtil.toJson(list);
+        }
+        for (int i = 0; i < list.size(); i++) {
+            list.get(i).put("SIGN_TIME",list.get(i).get("SIGN_TIME")==null?"":String.valueOf(list.get(i).get("SIGN_TIME")).substring(0,10));
+            list.get(i).put("APPLICATION_TIME",list.get(i).get("APPLICATION_TIME")==null?"":String.valueOf(list.get(i).get("APPLICATION_TIME")).substring(0,10));
+            list.get(i).put("DEPARTMENT_TIME",list.get(i).get("DEPARTMENT_TIME")==null?"":String.valueOf(list.get(i).get("DEPARTMENT_TIME")).substring(0,10));
+            list.get(i).put("FINANCE_TIME",list.get(i).get("FINANCE_TIME")==null?"":String.valueOf(list.get(i).get("FINANCE_TIME")).substring(0,10));
+            list.get(i).put("GENERAL_MANAGER_TIME",list.get(i).get("GENERAL_MANAGER_TIME")==null?"":String.valueOf(list.get(i).get("GENERAL_MANAGER_TIME")).substring(0,10));
+        }
+        return jacksonUtil.toJson(list);
+    }
+
+    public String addContractSign(HttpServletRequest request) {
+        String contract_number = request.getParameter("contract_number")==null?"":request.getParameter("contract_number");
+        String contract_name = request.getParameter("contract_name")==null?"":request.getParameter("contract_name");
+        String contract_type = request.getParameter("contract_type")==null?"":request.getParameter("contract_type");
+        String content_abstract = request.getParameter("content_abstract")==null?"":request.getParameter("content_abstract");
+        String contract_party_name = request.getParameter("contract_party_name")==null?"":request.getParameter("contract_party_name");
+        String contract_party_contacts = request.getParameter("contract_party_contacts")==null?"":request.getParameter("contract_party_contacts");
+        String contract_party_phone = request.getParameter("contract_party_phone")==null?"":request.getParameter("contract_party_phone");
+        String contract_party_address = request.getParameter("contract_party_address")==null?"":request.getParameter("contract_party_address");
+        String contract_party_legalname = request.getParameter("contract_party_legalname")==null?"":request.getParameter("contract_party_legalname");
+        String contract_party_fax = request.getParameter("contract_party_fax")==null?"":request.getParameter("contract_party_fax");
+        String contract_amount = request.getParameter("contract_amount")==null?"":request.getParameter("contract_amount");
+        String sign_time = request.getParameter("sign_time")==null?"":request.getParameter("sign_time");
+        String application_department = request.getParameter("application_department")==null?"":request.getParameter("application_department");
+        String application_person = request.getParameter("application_person")==null?"":request.getParameter("application_person");
+        String application_time = request.getParameter("application_time")==null?"":request.getParameter("application_time");
+        int count = 0;
+        String insert = "insert into TB_CONTRACT_SIGN (contract_number,contract_name,contract_type,content_abstract,contract_party_name,contract_party_contacts,contract_party_phone,contract_party_address,contract_party_legalname,contract_party_fax,contract_amount,sign_time,application_department,application_person,application_time) values" +
+                "('"+contract_number+"','"+contract_name+"','"+contract_type+"','"+content_abstract+"','"+contract_party_name+"','"+contract_party_contacts+"','"+contract_party_phone+"','"+contract_party_address+"','"+contract_party_legalname+"','"+contract_party_fax+"','"+contract_amount+"',to_date('"+sign_time+"','yyyy-mm-dd'),'"+application_department+"','"+application_person+"',to_date('"+application_time+"','yyyy-mm-dd'))";
+        try {
+            count = jdbcTemplate.update(insert);
+        }catch (Exception e){
+            count = 0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String auditContractSign(HttpServletRequest request) {
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        String type = request.getParameter("type")==null?"":request.getParameter("type");
+        int count = 0;
+        String insert = "";
+        if("1".equals(type)){
+            String department_signature = request.getParameter("department_signature")==null?"":request.getParameter("department_signature");
+            String department_time = request.getParameter("department_time")==null?"":request.getParameter("department_time");
+            String department = request.getParameter("department")==null?"":request.getParameter("department");
+            insert += "update TB_CONTRACT_SIGN set " +
+                    " department_signature='"+department_signature+"'" +
+                    ",department_time= to_date('"+department_time+"','yyyy-mm-dd')" +
+                    ",department='"+department+"'" +
+                    " where id='"+id+"'";
+        }else if("2".equals(type)){
+            String finance_signature = request.getParameter("finance_signature")==null?"":request.getParameter("finance_signature");
+            String finance_time = request.getParameter("finance_time")==null?"":request.getParameter("finance_time");
+            String finance = request.getParameter("finance")==null?"":request.getParameter("finance");
+            insert += "update TB_CONTRACT_SIGN set " +
+                    " finance_signature='"+finance_signature+"'" +
+                    ",finance_time= to_date('"+finance_time+"','yyyy-mm-dd')" +
+                    ",finance='"+finance+"'" +
+                    " where id='"+id+"'";
+
+        }else if("3".equals(type)){
+            String general_manager_signature = request.getParameter("general_manager_signature")==null?"":request.getParameter("general_manager_signature");
+            String general_manager_time = request.getParameter("general_manager_time")==null?"":request.getParameter("general_manager_time");
+            String general_manager = request.getParameter("general_manager")==null?"":request.getParameter("general_manager");
+            insert += "update TB_CONTRACT_SIGN set " +
+                    " general_manager_signature='"+general_manager_signature+"'" +
+                    ",general_manager_time= to_date('"+general_manager_time+"','yyyy-mm-dd')" +
+                    ",general_manager='"+general_manager+"'" +
+                    " where id='"+id+"'";
+        }
+        try {
+            count = jdbcTemplate.update(insert);
+        }catch (Exception e){
+            count = 0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+
+    public String updateContractSign(HttpServletRequest request) {
+        String contract_number = request.getParameter("contract_number")==null?"":request.getParameter("contract_number");
+        String contract_name = request.getParameter("contract_name")==null?"":request.getParameter("contract_name");
+        String contract_type = request.getParameter("contract_type")==null?"":request.getParameter("contract_type");
+        String content_abstract = request.getParameter("content_abstract")==null?"":request.getParameter("content_abstract");
+        String contract_party_name = request.getParameter("contract_party_name")==null?"":request.getParameter("contract_party_name");
+        String contract_party_contacts = request.getParameter("contract_party_contacts")==null?"":request.getParameter("contract_party_contacts");
+        String contract_party_phone = request.getParameter("contract_party_phone")==null?"":request.getParameter("contract_party_phone");
+        String contract_party_address = request.getParameter("contract_party_address")==null?"":request.getParameter("contract_party_address");
+        String contract_party_legalname = request.getParameter("contract_party_legalname")==null?"":request.getParameter("contract_party_legalname");
+        String contract_party_fax = request.getParameter("contract_party_fax")==null?"":request.getParameter("contract_party_fax");
+        String contract_amount = request.getParameter("contract_amount")==null?"":request.getParameter("contract_amount");
+        String sign_time = request.getParameter("sign_time")==null?"":request.getParameter("sign_time");
+        String application_department = request.getParameter("application_department")==null?"":request.getParameter("application_department");
+        String application_person = request.getParameter("application_person")==null?"":request.getParameter("application_person");
+        String application_time = request.getParameter("application_time")==null?"":request.getParameter("application_time");
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        int count = 0;
+        try {
+            String update = "update TB_CONTRACT_SIGN set " +
+                    " contract_number='"+contract_number+"'" +
+                    ",contract_name='"+contract_name+"'" +
+                    ",contract_type='"+contract_type+"'" +
+                    ",content_abstract='"+content_abstract+"'" +
+                    ",contract_party_name='"+contract_party_name+"'" +
+                    ",contract_party_contacts='"+contract_party_contacts+"'" +
+                    ",contract_party_phone='"+contract_party_phone+"'" +
+                    ",contract_party_address='"+contract_party_address+"'" +
+                    ",contract_party_legalname='"+contract_party_legalname+"'" +
+                    ",contract_party_fax='"+contract_party_fax+"'" +
+                    ",contract_amount='"+contract_amount+"'" +
+                    ",sign_time=to_date('"+sign_time+"','yyyy-mm-dd')" +
+                    ",application_department='"+application_department+"'" +
+                    ",application_person='"+application_person+"'" +
+                    ",application_time=to_date('"+application_time+"','yyyy-mm-dd')" +
+                    " where id='"+id+"'";
+            count = jdbcTemplate.update(update);
+        }catch (Exception e){
+            count = 0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String deleteContractSign(HttpServletRequest request) {
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        int count = 0;
+        String delete = "delete from TB_CONTRACT_SIGN where id='"+id+"'";
+        try {
+            count = jdbcTemplate.update(delete);
+        }catch (Exception e){
+            count = 0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String findInvoiceApplication(HttpServletRequest request) {
+        String unit_name = request.getParameter("unit_name")==null?"":request.getParameter("unit_name");
+        String phone = request.getParameter("phone")==null?"":request.getParameter("phone");
+        String name = request.getParameter("name")==null?"":request.getParameter("name");
+        String tj = "";
+        List<Map<String, Object>> list= new ArrayList<Map<String, Object>>();
+        if(unit_name!=null&&!unit_name.isEmpty()&&!unit_name.equals("null")&&unit_name.length()>0){
+            tj += " and a.unit_name like '%"+unit_name+"%'";
+        }
+        if(name!=null&&!name.isEmpty()&&!name.equals("null")&&name.length()>0){
+            tj += " and a.name like '%"+name+"%'";
+        }
+        if(phone!=null&&!phone.isEmpty()&&!phone.equals("null")&&phone.length()>0){
+            tj += " and a.phone like '%"+phone+"%'";
+        }
+        String sql = "select a.* from TB_INVOICE_APPLICATION a" +
+                " where 1=1 ";
+        sql += tj;
+        sql +=" order by a.ID desc";
+        try {
+            list=jdbcTemplate.queryForList(sql);
+        }catch (Exception e){
+            return jacksonUtil.toJson(list);
+        }
+        for (int i = 0; i < list.size(); i++) {
+            list.get(i).put("CREATE_TIME",list.get(i).get("CREATE_TIME")==null?"":String.valueOf(list.get(i).get("CREATE_TIME")).substring(0,10));
+        }
+        return jacksonUtil.toJson(list);
+    }
+
+    public String addInvoiceApplication(HttpServletRequest request) {
+        String unit_name = request.getParameter("unit_name")==null?"":request.getParameter("unit_name");
+        String invoice_contents = request.getParameter("invoice_contents")==null?"":request.getParameter("invoice_contents");
+        String invoice_amount = request.getParameter("invoice_amount")==null?"":request.getParameter("invoice_amount");
+        String invoice_type = request.getParameter("invoice_type")==null?"":request.getParameter("invoice_type");
+        String bank_account = request.getParameter("bank_account")==null?"":request.getParameter("bank_account");
+        String address = request.getParameter("address")==null?"":request.getParameter("address");
+        String phone = request.getParameter("phone")==null?"":request.getParameter("phone");
+        String name = request.getParameter("name")==null?"":request.getParameter("name");
+        String contact_information = request.getParameter("contact_information")==null?"":request.getParameter("contact_information");
+        String mailing_address = request.getParameter("mailing_address")==null?"":request.getParameter("mailing_address");
+        String duty_paragraph = request.getParameter("duty_paragraph")==null?"":request.getParameter("duty_paragraph");
+        int count = 0;
+        String insert = "insert into TB_INVOICE_APPLICATION (unit_name,invoice_contents,invoice_amount,invoice_type,bank_account,address,phone,name,contact_information,mailing_address,create_time,duty_paragraph) values" +
+                "('"+unit_name+"','"+invoice_contents+"','"+invoice_amount+"','"+invoice_type+"','"+bank_account+"','"+address+"','"+phone+"','"+name+"','"+contact_information+"','"+mailing_address+"',sysdate,'"+duty_paragraph+"')";
+        try {
+            count = jdbcTemplate.update(insert);
+        }catch (Exception e){
+            count = 0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String updateInvoiceApplication(HttpServletRequest request) {
+        String unit_name = request.getParameter("unit_name")==null?"":request.getParameter("+");
+        String invoice_contents = request.getParameter("invoice_contents")==null?"":request.getParameter("invoice_contents");
+        String invoice_amount = request.getParameter("invoice_amount")==null?"":request.getParameter("invoice_amount");
+        String invoice_type = request.getParameter("invoice_type")==null?"":request.getParameter("invoice_type");
+        String bank_account = request.getParameter("bank_account")==null?"":request.getParameter("bank_account");
+        String address = request.getParameter("address")==null?"":request.getParameter("address");
+        String phone = request.getParameter("phone")==null?"":request.getParameter("phone");
+        String name = request.getParameter("name")==null?"":request.getParameter("name");
+        String contact_information = request.getParameter("contact_information")==null?"":request.getParameter("contact_information");
+        String mailing_address = request.getParameter("mailing_address")==null?"":request.getParameter("mailing_address");
+        String duty_paragraph = request.getParameter("duty_paragraph")==null?"":request.getParameter("duty_paragraph");
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        int count = 0;
+        String update = "update TB_INVOICE_APPLICATION set " +
+                " unit_name='"+unit_name+"'" +
+                ",invoice_contents='"+invoice_contents+"'" +
+                ",invoice_amount='"+invoice_amount+"'" +
+                ",invoice_type='"+invoice_type+"'" +
+                ",bank_account='"+bank_account+"'" +
+                ",address='"+address+"'" +
+                ",phone='"+phone+"'" +
+                ",name='"+name+"'" +
+                ",contact_information='"+contact_information+"'" +
+                ",mailing_address='"+mailing_address+"'" +
+                ",duty_paragraph='"+duty_paragraph+"'" +
+                " where id='"+id+"'";
+        try {
+            count = jdbcTemplate.update(update);
+        }catch (Exception e){
+            count = 0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String deleteInvoiceApplication(HttpServletRequest request) {
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        int count = 0;
+        String delete = "delete from TB_INVOICE_APPLICATION where id='"+id+"'";
+        try {
+            count = jdbcTemplate.update(delete);
+        }catch (Exception e){
+            count = 0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String findUserID(String name) {
+        String userid = "";
+        String sql = "select userid from tb_kp_user where username='"+name.trim()+"'";
+        try {
+            List<Map<String, Object>> list = jdbcTemplate.queryForList(sql);
+            if(list.size()==1&&list.get(0).get("USERID")!=null){
+                userid=list.get(0).get("USERID").toString();
+            }
+        }catch (Exception e){
+            userid = "";
+        }
+        return userid;
+    }
+
+    private List<Map<String, Object>> auditList(HttpServletRequest request, List<Map<String, Object>> list) {
+        String qx_power = request.getSession().getAttribute("power") == null?"":String.valueOf(request.getSession().getAttribute("power"));
+        String qx_userid = request.getSession().getAttribute("userid") == null?"":String.valueOf(request.getSession().getAttribute("userid"));
+        String qx_username = request.getSession().getAttribute("username") == null?"":String.valueOf(request.getSession().getAttribute("username"));
+        String qx_department = request.getSession().getAttribute("department") == null?"":String.valueOf(request.getSession().getAttribute("department"));
+        String qx_department_id = request.getSession().getAttribute("department_id") == null?"":String.valueOf(request.getSession().getAttribute("department_id"));
+        //查看部分权限能查看的userid
+        List<Map<String, Object>> listUser = new ArrayList<Map<String, Object>>();
+        if("1".equals(qx_power)){
+            String sql="select wm_concat(userid) userids from tb_kp_user where  department_id='"+qx_department_id+"'";
+            try {
+                listUser = jdbcTemplate.queryForList(sql);
+            }catch (Exception e){
+                return new ArrayList<Map<String, Object>>();
+            }
+        }
+        Iterator<Map<String, Object>> iterator = list.iterator();
+        while (iterator.hasNext()){
+            Map<String, Object> next = iterator.next();
+            //判断是否为查看全部权限
+            if(!"0".equals(qx_power)){
+                //判断是否为查看部分权限
+                if("1".equals(qx_power)){
+                    if(listUser.size()==1&&listUser.get(0).get("USERIDS")!=null&&next.get("USERID")!=null){
+                        if(listUser.get(0).get("USERIDS").toString().indexOf(next.get("USERID").toString())==-1){
+                            iterator.remove();
+                        }
+                    }else{
+                        iterator.remove();
+                    }
+                }else if("2".equals(qx_power)){
+                    if(!qx_userid.equals(String.valueOf(next.get("USERID")))){
+                        iterator.remove();
+                    }
+                }else{
+                    iterator.remove();
+                }
+            }
+        }
+        return list;
+    }
+}

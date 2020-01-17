@@ -1,0 +1,103 @@
+package com.twkj.controllers;
+
+import com.twkj.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+
+/**
+ * @author: xianlehuang
+ * @Description:
+ * @date: 2019/12/4 - 10:12
+ */
+@Controller
+@RequestMapping("/user")
+public class UserAction {
+    @Autowired
+    private UserService userService;
+
+    //页面权限
+    @RequestMapping("/power")
+    @ResponseBody
+    public String power(HttpServletRequest request){
+        String msg = userService.power(request);
+        return msg;
+    }
+
+    //登录
+    @RequestMapping(value = "/login",method = RequestMethod.POST)
+    @ResponseBody
+    public String login(HttpServletRequest request){
+        String msg = userService.login(request);
+        return msg;
+    }
+
+    //岗位
+    @RequestMapping("/findPost")
+    @ResponseBody
+    public String findPost(HttpServletRequest request){
+        String msg = userService.findPost(request);
+        return msg;
+    }
+
+    //岗位
+    @RequestMapping("/addPost")
+    @ResponseBody
+    public String addPost(HttpServletRequest request){
+        String msg = userService.addPost(request);
+        return msg;
+    }
+
+    //岗位
+    @RequestMapping("/updatePost")
+    @ResponseBody
+    public String updatePost(HttpServletRequest request){
+        String msg = userService.updatePost(request);
+        return msg;
+    }
+
+    //岗位
+    @RequestMapping("/deletePost")
+    @ResponseBody
+    public String deletePost(HttpServletRequest request){
+        String msg = userService.deletePost(request);
+        return msg;
+    }
+
+    //用户
+    @RequestMapping("/findUser")
+    @ResponseBody
+    public String findUser(HttpServletRequest request){
+        String msg = userService.findUser(request);
+        return msg;
+    }
+
+    //用户
+    @RequestMapping("/addUser")
+    @ResponseBody
+    public String addUser(HttpServletRequest request){
+        String msg = userService.addUser(request);
+        return msg;
+    }
+
+    //用户
+    @RequestMapping("/updateUser")
+    @ResponseBody
+    public String updateUser(HttpServletRequest request){
+        String msg = userService.updateUser(request);
+        return msg;
+    }
+
+    //用户
+    @RequestMapping("/deleteUser")
+    @ResponseBody
+    public String deleteUser(HttpServletRequest request){
+        String msg = userService.deleteUser(request);
+        return msg;
+    }
+
+}

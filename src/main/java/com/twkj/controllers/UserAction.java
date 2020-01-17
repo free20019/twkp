@@ -1,0 +1,374 @@
+package com.twkj.controllers;
+
+import com.twkj.helper.DownloadAct;
+import com.twkj.service.UserService;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+/**
+ * @author: xianlehuang
+ * @Description:
+ * @date: 2019/12/4 - 10:12
+ */
+@Controller
+@RequestMapping("/user")
+public class UserAction {
+    @Autowired
+    private UserService userService;
+
+    private DownloadAct downloadAct = new DownloadAct();
+
+    //页面权限
+    @RequestMapping("/power")
+    @ResponseBody
+    public String power(HttpServletRequest request){
+        String msg = userService.power(request);
+        return msg;
+    }
+
+    //登录
+    @RequestMapping(value = "/login")
+    @ResponseBody
+    public String login(HttpServletRequest request){
+        String msg = userService.login(request);
+        return msg;
+    }
+
+    //index
+    @RequestMapping("/index")
+    @ResponseBody
+    public String index(HttpServletRequest request){
+        String msg = userService.index(request);
+        return msg;
+    }
+
+    //岗位
+    @RequestMapping("/findPost")
+    @ResponseBody
+    public String findPost(HttpServletRequest request){
+        String msg = userService.findPost(request);
+        return msg;
+    }
+
+    //岗位导出
+    @RequestMapping("/findPostExcel")
+    @ResponseBody
+    public String findPostExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String a[] = {"岗位","权限"};//导出列明
+        String b[] = {"POST_NAME","POWER_NAME"};//导出map中的key
+        String gzb = "岗位";//导出sheet名和导出的文件名
+        String msg = userService.findPost(request);
+        List<Map<String, Object>> list = DownloadAct.parseJSON2List2(msg);
+        downloadAct.download(request,response,a,b,gzb,list);
+        return null;
+    }
+
+    //岗位
+    @RequestMapping("/addPost")
+    @ResponseBody
+    public String addPost(HttpServletRequest request){
+        String msg = userService.addPost(request);
+        return msg;
+    }
+
+    //岗位
+    @RequestMapping("/updatePost")
+    @ResponseBody
+    public String updatePost(HttpServletRequest request){
+        String msg = userService.updatePost(request);
+        return msg;
+    }
+
+    //岗位
+    @RequestMapping("/deletePost")
+    @ResponseBody
+    public String deletePost(HttpServletRequest request){
+        String msg = userService.deletePost(request);
+        return msg;
+    }
+
+    //部门
+    @RequestMapping("/getDepartment")
+    @ResponseBody
+    public String department(HttpServletRequest request){
+        String msg = userService.department(request);
+        return msg;
+    }
+
+    //用户
+    @RequestMapping("/findUser")
+    @ResponseBody
+    public String findUser(HttpServletRequest request){
+        String msg = userService.findUser(request);
+        return msg;
+    }
+
+    //用户导出
+    @RequestMapping("/findUserExcel")
+    @ResponseBody
+    public String findUserExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String a[] = {"姓名","账号","密码","部门","岗位"};//导出列明
+        String b[] = {"USERNAME","LOGINNAME","PASSWORD","DEPARTMENT","POST_NAME"};//导出map中的key
+        String gzb = "用户";//导出sheet名和导出的文件名
+        String msg = userService.findUser(request);
+        List<Map<String, Object>> list = DownloadAct.parseJSON2List2(msg);
+        downloadAct.download(request,response,a,b,gzb,list);
+        return null;
+    }
+
+    //用户
+    @RequestMapping("/addUser")
+    @ResponseBody
+    public String addUser(HttpServletRequest request){
+        String msg = userService.addUser(request);
+        return msg;
+    }
+
+    //用户
+    @RequestMapping("/updateUser")
+    @ResponseBody
+    public String updateUser(HttpServletRequest request){
+        String msg = userService.updateUser(request);
+        return msg;
+    }
+
+    //用户
+    @RequestMapping("/deleteUser")
+    @ResponseBody
+    public String deleteUser(HttpServletRequest request){
+        String msg = userService.deleteUser(request);
+        return msg;
+    }
+
+    //日报查询
+    @RequestMapping("/findDaily")
+    @ResponseBody
+    public String findDaily(String username, String department, String time){
+        return userService.findDaily(username, department, time, "1");
+    }
+
+    //日报导出
+    @RequestMapping("/findDailyExcel")
+    @ResponseBody
+    public String findDailyExcel(HttpServletRequest request, HttpServletResponse response, String username, String department, String time) throws IOException {
+        String[] year_month=time.split("-");
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, Integer.parseInt(year_month[0]));
+        cal.set(Calendar.MONTH,Integer.parseInt(year_month[1])-1);//7月   
+        int maxDate = cal.getActualMaximum(Calendar.DATE);
+        String a[] = new String[maxDate+10];
+        String b[] = new String[maxDate+10];
+        a[0] = "姓名";
+        a[1] = "午别";
+        b[0] = "USERNAME";
+        b[1] = "TYPE";
+        for(int i=2;i<maxDate+2;i++){
+            a[i]=i-1+"";
+            b[i]="KQ"+(i-1);
+        }
+        a[maxDate+2] = "出勤天数";
+        a[maxDate+3] = "事假";
+        a[maxDate+4] = "病假";
+        a[maxDate+5] = "调休假";
+        a[maxDate+6] = "年休假";
+        a[maxDate+7] = "婚假";
+        a[maxDate+8] = "节假日";
+        a[maxDate+9] = "加班";
+        b[maxDate+2] = "CQ";
+        b[maxDate+3] = "SJ";
+        b[maxDate+4] = "BJ";
+        b[maxDate+5] = "TXJ";
+        b[maxDate+6] = "NJ";
+        b[maxDate+7] = "HJ";
+        b[maxDate+8] = "JJR";
+        b[maxDate+9] = "JB";
+        String gzb = "日报("+time+")";//导出sheet名和导出的文件名
+        String msg = userService.findDaily(username, department, time, "2");
+        List<Map<String, Object>> listsw = (List<Map<String, Object>>) parseJSON2Map(msg).get("list1");
+        List<Map<String, Object>> listxw = (List<Map<String, Object>>) parseJSON2Map(msg).get("list2");
+        DownloadAct.download2(request,response,a,b,gzb,listsw,listxw,time);
+        return null;
+    }
+
+    //json to map
+    public static Map<String, Object> parseJSON2Map(String jsonStr){
+        Map<String, Object> map = new HashMap<String, Object>();
+        JSONObject json = JSONObject.fromObject(jsonStr);
+        for(Object k : json.keySet()){
+            Object v = json.get(k);
+            if(v instanceof JSONArray){
+                List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
+                Iterator<JSONObject> it = ((JSONArray)v).iterator();
+                while(it.hasNext()){
+                    JSONObject json2 = it.next();
+                    list.add(parseJSON2Map(json2.toString()));
+                }
+                map.put(k.toString(), list);
+            } else {
+                map.put(k.toString(), v);
+            }
+        }
+        return map;
+    }
+
+    //部门
+    @RequestMapping("/department")
+    @ResponseBody
+    public String getDepartment(){
+        return userService.getDepartment();
+    }
+
+    //主页面
+    @RequestMapping("/homePage")
+    @ResponseBody
+    public String homePage(HttpServletRequest request){
+        return userService.homePage(request);
+    }
+
+    //月签到表
+    @RequestMapping("/monthlyCheck")
+    @ResponseBody
+    public String monthlyCheck(HttpServletRequest request){
+        return userService.monthlyCheck(request);
+    }
+
+    //月签到表导出
+    @RequestMapping("/monthlyCheckExcel")
+    @ResponseBody
+    public String monthlyCheckExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        String time = request.getParameter("time")==null?"":request.getParameter("time");
+        String[] year_month=time.split("-");
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, Integer.parseInt(year_month[0]));
+        cal.set(Calendar.MONTH,Integer.parseInt(year_month[1])-1);//7月   
+        int maxDate = cal.getActualMaximum(Calendar.DATE);
+        String a[] = new String[maxDate*2+1];
+        String b[] = new String[maxDate*2+1];
+        a[0] = "姓名\r\n";
+        b[0] = "USERNAME";
+        Date date=null;
+        for(int i=1;i<maxDate*2+1;i++){
+            int day = (i+1)/2;
+            try {
+                date=format.parse(time+"-"+day);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            if(i%2==1){
+                a[i]=time.substring(5,7)+"月"+day+"日 "+String.format("%tA",date)+"\r\n 签到";
+                b[i]="SW"+day;
+            }else{
+                a[i]=time.substring(5,7)+"月"+day+"日 "+String.format("%tA",date)+"\r\n 签退";
+                b[i]="XW"+day;
+            }
+        }
+        String gzb = "月签到表("+time+")";//导出sheet名和导出的文件名
+        String msg = userService.monthlyCheck(request);
+        List<Map<String, Object>> list = DownloadAct.parseJSON2List2(msg);
+        for (int i = 0; i < list.size(); i++) {
+            for (int j = 0; j < maxDate; j++) {
+                if(list.get(i).get("QDTIME"+(j+1))==null){
+                    if(list.get(i).get("BG"+(j+1))==null){
+                        if(list.get(i).get("QJ"+(j+1))==null){
+                            list.get(i).put("SW"+(j+1),"");
+                        }else{
+                            list.get(i).put("SW"+(j+1),list.get(i).get("QJ"+(j+1)));
+                        }
+                    }else{
+                        list.get(i).put("SW"+(j+1),"外勤");
+                    }
+                }else{
+                    list.get(i).put("SW"+(j+1),list.get(i).get("QDTIME"+(j+1)).toString().substring(11,19));
+                }
+                if(list.get(i).get("QTTIME"+(j+1))==null){
+                    if(list.get(i).get("BG"+(j+1))==null){
+                        if(list.get(i).get("QJ"+(j+1))==null){
+                            list.get(i).put("XW"+(j+1),"");
+                        }else{
+                            list.get(i).put("XW"+(j+1),list.get(i).get("QJ"+(j+1)));
+                        }
+                    }else{
+                        list.get(i).put("XW"+(j+1),"外勤");
+                    }
+                }else{
+                    list.get(i).put("XW"+(j+1),list.get(i).get("QTTIME"+(j+1)).toString().substring(11,19));
+                }
+            }
+        }
+        downloadAct.download(request,response,a,b,gzb,list);
+        return null;
+    }
+
+    //月外勤表
+    @RequestMapping("/monthlyFieldWork")
+    @ResponseBody
+    public String monthlyFieldWork(HttpServletRequest request){
+        return userService.monthlyFieldWork(request);
+    }
+
+    //月外勤表导出
+    @RequestMapping("/monthlyFieldWorkExcel")
+    @ResponseBody
+    public String monthlyFieldWorkExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        String time = request.getParameter("time")==null?"":request.getParameter("time");
+        String[] year_month=time.split("-");
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, Integer.parseInt(year_month[0]));
+        cal.set(Calendar.MONTH,Integer.parseInt(year_month[1])-1);//7月   
+        int maxDate = cal.getActualMaximum(Calendar.DATE);
+        String a[] = new String[maxDate*2+1];
+        String b[] = new String[maxDate*2+1];
+        a[0] = "姓名\r\n";
+        b[0] = "USERNAME";
+        Date date=null;
+        for(int i=1;i<maxDate*2+1;i++){
+            int day = (i+1)/2;
+            try {
+                date=format.parse(time+"-"+day);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            if(i%2==1){
+                a[i]=time.substring(5,7)+"月"+day+"日 "+String.format("%tA",date)+"\r\n 上午";
+                b[i]="SW"+day;
+            }else{
+                a[i]=time.substring(5,7)+"月"+day+"日 "+String.format("%tA",date)+"\r\n 下午";
+                b[i]="XW"+day;
+            }
+        }
+        String gzb = "月外勤表("+time+")";//导出sheet名和导出的文件名
+        String msg = userService.monthlyFieldWork(request);
+        List<Map<String, Object>> list = DownloadAct.parseJSON2List2(msg);
+        for (int i = 0; i < list.size(); i++) {
+            for (int j = 0; j < maxDate; j++) {
+                if(list.get(i).get("SWBG"+(j+1))==null){
+                    list.get(i).put("SW"+(j+1),"");
+                }else{
+                    list.get(i).put("SW"+(j+1),list.get(i).get("SWBG"+(j+1)).toString().substring(11,19));
+                }
+                if(list.get(i).get("XWBG"+(j+1))==null){
+                    list.get(i).put("XW"+(j+1),"");
+                }else{
+                    list.get(i).put("XW"+(j+1),list.get(i).get("XWBG"+(j+1)).toString().substring(11,19));
+                }
+            }
+        }
+        downloadAct.download(request,response,a,b,gzb,list);
+        return null;
+    }
+}

@@ -1,0 +1,313 @@
+package com.twkj.dao;
+
+import org.apache.ibatis.annotations.*;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+/**
+ * @author: xianlehuang
+ * @Description:
+ * @date: 2019/12/4 - 10:19
+ */
+public interface UserDao {
+
+    @Select("select * from tb_power_web order by id")
+    public List<Map<String, Object>> power();
+
+    @Select("select u.*, p.POST_NAME, p.POWER_ID, p.POWER_NAME,d.department from tb_kp_user u " +
+            " left join TB_POST_WEB p on u.POST_ID=p.id" +
+            " left join tb_kp_department d on d.id=u.department_id" +
+            " where u.loginname = #{loginname} and u.password = #{password}")
+    List<Map<String, Object>> login(Map<String, Object> map);
+
+//    @Select("select * from TB_POST_WEB where post_name = #{post_name} and power_id = #{power_id} and power_name = #{power_name}")
+    @SelectProvider(type =UserSql.class, method = "findPost")
+    List<Map<String, Object>> findPost(Map<String, Object> map);
+
+    @Insert("insert into TB_POST_WEB (post_name, power_id, power_name) values (#{post_name}, #{power_id}, #{power_name})")
+    Integer addPost(Map<String, Object> map);
+
+    @Update("update TB_POST_WEB set  post_name=#{post_name}, power_id=#{power_id}, power_name=#{power_name} where id=#{id} ")
+    Integer updatePost(Map<String, Object> map);
+
+    @Delete("delete from TB_POST_WEB where id=#{id}")
+    int deletePost(Map<String, Object> map);
+
+    @Select("select * from tb_kp_department order by id")
+    List<Map<String, Object>> department();
+
+    @SelectProvider(type =UserSql.class, method = "findUser")
+    List<Map<String, Object>> findUser(Map<String, Object> map);
+
+    @Insert("insert into tb_kp_user (department_id, username, password, post_id, loginname, power, userid) values (#{department_id}, #{username}, #{password}, #{post_id}, #{loginname}, #{power}, (select case when (select count(*) from tuser where username=#{username}) =1 then (select userid from tuser where username=#{username}) when (select count(*) from tb_kp_user) >0 then (select  to_char(max(userid)+1) from tb_kp_user) else '1' END from dual))")
+    int addUser(Map<String, Object> map);
+
+    @Update("update tb_kp_user set department_id=#{department_id}, username=#{username}, password=#{password}, post_id=#{post_id}, loginname=#{loginname} , power=#{power}, userid=(select case when (select count(*) from tuser where username=#{username}) =1 then (select userid from tuser where username=#{username}) when (select count(*) from tb_kp_user) >0 then (select  to_char(max(userid)+1) from tb_kp_user) else '1' END from dual) where id=#{id} ")
+    int updateUser(Map<String, Object> map);
+
+    @Delete("delete from tb_kp_user where id=#{id}")
+    int deleteUser(Map<String, Object> map);
+
+    @SelectProvider(type =UserSql.class, method = "findDaily1")
+    List<LinkedHashMap<String, Object>> findDaily1(Map<String, Object> map);
+
+    @SelectProvider(type =UserSql.class, method = "findDaily2")
+    List<LinkedHashMap<String, Object>> findDaily2(Map<String, Object> map);
+
+    @Select("select distinct to_char(holiday_date,'yyyyMMdd') DAY from oa_holiday where (type='1' or type='3')  and holiday_date >=to_date('${time}01','yyyyMMdd') and holiday_date <=to_date('${time}${maxDate}','yyyyMMdd')  ORDER BY to_char(holiday_date, 'yyyyMMdd')")
+    List<Map<String, Object>> findHoliday(Map<String, Object> map);
+
+    @Select("select distinct a.BM, a.CODE, b.bm pbm,b.code pcode from tb_bm a left join tb_bm b on b.code=a.parent order by a.BM")
+    List<Map<String, Object>> getDepartment();
+
+    @SelectProvider(type =UserSql.class, method = "monthlyCheck")
+    List<LinkedHashMap<String, Object>> monthlyCheck(Map<String, Object> map);
+
+    @SelectProvider(type =UserSql.class, method = "monthlyFieldWork")
+    List<LinkedHashMap<String, Object>> monthlyFieldWork(Map<String, Object> map);
+
+    class UserSql{
+        public String findPost(Map<String, Object> map){
+            String post_name = String.valueOf(map.get("post_name"));
+            String power_id = String.valueOf(map.get("power_id"));
+            String power_name = String.valueOf(map.get("power_name"));
+            String tj="";
+            if(post_name!=null&&!post_name.isEmpty()&&!post_name.equals("null")&&post_name.length()>0){
+                tj += " and a.post_name like '%"+post_name+"%'";
+            }
+            if(power_id!=null&&!power_id.isEmpty()&&!power_id.equals("null")&&power_id.length()>0){
+                tj += " and a.power_id like '%"+power_id+"%'";
+            }
+            if(power_name!=null&&!power_name.isEmpty()&&!power_name.equals("null")&&power_name.length()>0){
+                tj += " and a.power_name like '%"+power_name+"%'";
+            }
+            String sql = "select * from TB_POST_WEB a where 1=1";
+            sql += tj;
+            sql +=" order by a.post_name";
+            return sql;
+        }
+        public String findUser(Map<String, Object> map){
+            String username = String.valueOf(map.get("username"));
+            String department = String.valueOf(map.get("department"));
+            String tj="";
+            if(username!=null&&!username.isEmpty()&&!username.equals("null")&&username.length()>0){
+                tj += " and a.username like '%"+username+"%'";
+            }
+            if(department!=null&&!department.isEmpty()&&!department.equals("null")&&department.length()>0){
+                tj += " and d.department like '%"+department+"%'";
+            }
+            String sql = "select a.*,d.department,p.post_name from TB_KP_USER a" +
+                    " left join tb_kp_department d on a.department_id=d.id" +
+                    " left join TB_POST_WEB p on p.id=a.post_id" +
+                    " where 1=1";
+            sql += tj;
+            sql +=" order by a.username";
+            return sql;
+        }
+
+        public String findDaily1(Map<String, Object> map) {
+            String username = String.valueOf(map.get("username"));
+            String department = String.valueOf(map.get("department"));
+            String time = String.valueOf(map.get("time"));
+            String tj = "";
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            if (username != null && !username.isEmpty() && !username.equals("null") && username.length() > 0) {
+                tj += " and u.USERNAME like '%" + username + "%'";
+            }
+            if (department != null && !department.isEmpty() && !department.equals("null") && department.length() > 0) {
+                tj += " and u.bm = '" + department + "'";
+            }
+            String sql1 = "";
+            int maxDate = 0;
+            if (time != null && !time.isEmpty() && !time.equals("null") && time.length() > 0) {
+                String[] year_month = time.split("-");
+                Calendar cal = Calendar.getInstance();
+                int year = Integer.parseInt(year_month[0]);
+                int month = Integer.parseInt(year_month[1]) - 1;
+                cal.set(Calendar.YEAR, year);
+                cal.set(Calendar.MONTH, month);
+                cal.set(Calendar.DATE, 1);
+                cal.roll(Calendar.DATE, -1);
+                maxDate = cal.get(Calendar.DATE);
+                //上午
+                sql1 += "select distinct * from (select  u.USERID, u.USERNAME, u.BM, u.gw ,case when 1=1 then 1 end type from tuser u where 1=1";
+                sql1 += tj;
+                sql1 += " ) u";
+                for (int i = 1; i <= maxDate; i++) {
+                    int m = i;
+                    sql1 += " left join (select distinct u.USERID,s.qd qd" + m + ", j.jbnr jb" + m + ", q.qjtype qj" + m + " , w.BGTIME bg" + m + " from tuser u" +
+                            " left join tb_bm b on u.bm=b.code " +
+                            " left join (select s.*,case when z.sbtime>=to_char(s.QDTIME-1/24/60,'hh24miss') then '正常' else '不正常' end qd from tb_signin s,TB_SZ z, tuser u where s.USERID=u.USERID and u.BM=z.BM) s" +
+                            "  on s.USERID=u.USERID and to_char(s.QDTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "'" +
+                            "  and not exists(select 1 from tb_signin where s.USERID = USERID AND to_char(QDTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and s.QDTIME>QDTIME)" +
+                            " left join TB_JB j on j.USERID=u.USERID and to_char(j.JBKSTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and to_char(j.JBKSTIME,'hh24miss') <= '120000' and j.SQJG=1" +
+                            "  and not exists(select 1 from TB_JB where j.USERID = USERID AND to_char(JBKSTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and to_char(JBKSTIME,'hh24miss') <= '120000' and SQJG=1 and j.JBKSTIME<JBKSTIME)" +
+                            " left join TB_QJSC q on q.USERID=u.USERID and to_date('" + time + "-" + m + " 120000','yyyy-MM-fmdd hh24miss')>=q.QJKSTIME and to_date('" + time + "-" + m + " 000000','yyyy-MM-fmdd hh24miss')<=q.QJJSTIME and q.SQJG=1 " +
+                            "  and not exists(select 1 from TB_QJSC where q.USERID = USERID AND to_date('" + time + "-" + m + " 120000','yyyy-MM-fmdd hh24miss')>=QJKSTIME and to_date('" + time + "-" + m + " 000000','yyyy-MM-fmdd hh24miss')<=QJJSTIME and SQJG=1 and q.QJKSTIME<QJKSTIME)" +
+                            " left join (select BGTIME,USERID from  TB_WQBGSC where SQJG=1) w on w.USERID=u.USERID and to_char(w.BGTIME, 'yyyy-MM-fmdd')='" + time + "-" + m + "'" +
+                            "  and not exists(select 1 from TB_WQBGSC where w.USERID = USERID AND to_char(BGTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and SQJG=1 and w.BGTIME<BGTIME)" +
+                            " where 1=1 ";
+                    sql1 += tj;
+                    sql1 += ") d" + m + " on u.USERID=d" + m + ".USERID";
+                }
+                sql1 += " order by u.bm,nlssort(u.username,'NLS_SORT=SCHINESE_PINYIN_M')";
+            }
+            return sql1;
+        }
+
+        public String findDaily2(Map<String, Object> map) {
+            String username = String.valueOf(map.get("username"));
+            String department = String.valueOf(map.get("department"));
+            String time = String.valueOf(map.get("time"));
+            String tj = "";
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            if (username != null && !username.isEmpty() && !username.equals("null") && username.length() > 0) {
+                tj += " and u.USERNAME like '%" + username + "%'";
+            }
+            if (department != null && !department.isEmpty() && !department.equals("null") && department.length() > 0) {
+                tj += " and u.bm = '" + department + "'";
+            }
+            String sql2 = "";
+            int maxDate = 0;
+            if (time != null && !time.isEmpty() && !time.equals("null") && time.length() > 0) {
+                String[] year_month = time.split("-");
+                Calendar cal = Calendar.getInstance();
+                int year = Integer.parseInt(year_month[0]);
+                int month = Integer.parseInt(year_month[1]) - 1;
+                cal.set(Calendar.YEAR, year);
+                cal.set(Calendar.MONTH, month);
+                cal.set(Calendar.DATE, 1);
+                cal.roll(Calendar.DATE, -1);
+                maxDate = cal.get(Calendar.DATE);
+                //下午
+                sql2 += "select distinct * from (select  u.USERID, u.USERNAME, u.BM, u.gw ,case when 1=1 then 2 end type from tuser u where 1=1";
+                sql2 += tj;
+                sql2 += " ) u";
+                for (int i = 1; i <= maxDate; i++) {
+                    int m = i;
+                    sql2 += " left join (select distinct u.USERID,s.qd qd" + m + ", j.jbnr jb" + m + ", q.qjtype qj" + m + " , w.BGTIME bg" + m + " from tuser u" +
+                            " left join tb_bm b on u.bm=b.code " +
+                            " left join (select s.*,case when z.xbtime<=to_char(s.QTTIME,'hh24miss') then '正常' else '不正常' end qd from tb_signout s,TB_SZ z, tuser u where s.USERID=u.USERID and u.BM=z.BM) s" +
+                            "  on s.USERID=u.USERID and to_char(s.QTTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "'" +
+                            "  and not exists(select 1 from tb_signout where s.USERID = USERID AND to_char(QTTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and s.QTTIME<QTTIME)" +
+                            " left join TB_JB j on j.USERID=u.USERID and to_char(j.JBJSTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and to_char(j.JBJSTIME,'hh24miss') > '133000' and j.SQJG=1 " +
+                            "  and not exists(select 1 from TB_JB where j.USERID = USERID AND to_char(JBJSTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and to_char(JBJSTIME,'hh24miss') > '133000' and SQJG=1  and j.JBJSTIME<JBJSTIME)" +
+                            " left join TB_QJSC q on q.USERID=u.USERID and to_date('" + time + "-" + m + " 133000','yyyy-MM-fmdd hh24miss')<q.QJJSTIME and to_date('" + time + "-" + m + " 235959','yyyy-MM-fmdd hh24miss')>q.QJKSTIME and q.SQJG=1 " +
+                            "  and not exists(select 1 from TB_QJSC where q.USERID = USERID AND to_date('" + time + "-" + m + " 133000','yyyy-MM-fmdd hh24miss')<QJJSTIME and to_date('" + time + "-" + m + " 235959','yyyy-MM-fmdd hh24miss')>QJKSTIME and SQJG=1 and q.QJKSTIME<QJKSTIME)" +
+                            " left join (select BGTIME,USERID from TB_WQBGSC where SQJG=1 ) w on w.USERID=u.USERID and to_char(w.BGTIME, 'yyyy-MM-fmdd') ='" + time + "-" + m + "'" +
+                            "  and not exists(select 1 from TB_WQBGSC where w.USERID = USERID AND to_char(BGTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and SQJG=1 and w.BGTIME<BGTIME)" +
+                            " where 1=1 ";
+                    sql2 += tj;
+                    sql2 += " ) d" + m + " on u.USERID=d" + m + ".USERID";
+                }
+                sql2 += " order by u.bm,nlssort(u.username,'NLS_SORT=SCHINESE_PINYIN_M')";
+            }
+            return sql2;
+        }
+
+        public String monthlyCheck(Map<String, Object> map){
+            String username = String.valueOf(map.get("username"));
+            String department = String.valueOf(map.get("department"));
+            String time = String.valueOf(map.get("time"));
+            String tj = "";
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            if (username != null && !username.isEmpty() && !username.equals("null") && username.length() > 0) {
+                tj += " and u.USERNAME like '%" + username + "%'";
+            }
+            if (department != null && !department.isEmpty() && !department.equals("null") && department.length() > 0) {
+                tj += " and u.bm = '" + department + "'";
+            }
+            String sql = "";
+            int maxDate = 0;
+            if (time != null && !time.isEmpty() && !time.equals("null") && time.length() > 0) {
+                String[] year_month = time.split("-");
+                Calendar cal = Calendar.getInstance();
+                int year = Integer.parseInt(year_month[0]);
+                int month = Integer.parseInt(year_month[1]) - 1;
+                cal.set(Calendar.YEAR, year);
+                cal.set(Calendar.MONTH, month);
+                cal.set(Calendar.DATE, 1);
+                cal.roll(Calendar.DATE, -1);
+                maxDate = cal.get(Calendar.DATE);
+                sql += "select u.USERID, u.USERNAME";
+                for (int i = 1; i <= maxDate; i++) {
+                    int m = i;
+                    sql +=",d" + m + ".qd" + m + ", d" + m + ".qdtime" + m + ", d" + m + ".qt" + m + ", d" + m + ".qttime" + m + ", d" + m + ".qj" + m + " ,d" + m + ".bg" + m ;
+                }
+                sql +=" from (select  u.USERID, u.USERNAME, u.bm from tuser u where 1=1";
+                sql += tj;
+                sql += " ) u";
+                for (int i = 1; i <= maxDate; i++) {
+                    int m = i;
+                    sql += " left join (select distinct u.USERID, s.qd qd" + m + ", to_char(s.QDTIME,'yyyy-MM-dd hh24:mi:ss') qdtime" + m + ", ss.qd qt" + m + ", to_char(ss.QTTIME,'yyyy-MM-dd hh24:mi:ss') qttime" + m + ", q.qjtype qj" + m + " ,to_char(w.BGTIME,'yyyy-MM-dd hh24:mi:ss')  bg" + m + " from tuser u" +
+                            " left join tb_bm b on u.bm=b.code " +
+                            " left join (select s.*,case when z.sbtime>=to_char(s.QDTIME-1/24/60,'hh24miss') then '正常' else '不正常' end qd from tb_signin s,TB_SZ z, tuser u where s.USERID=u.USERID and u.BM=z.BM) s" +
+                            " on s.USERID=u.USERID and to_char(s.QDTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "'" +
+                            " and not exists(select 1 from tb_signin where s.USERID = USERID AND to_char(QDTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and s.QDTIME>QDTIME)" +
+                            " left join (select ss.*,case when z.xbtime<=to_char(ss.QTTIME,'hh24miss') then '正常' else '不正常' end qd from tb_signout ss,TB_SZ z, tuser u where ss.USERID=u.USERID and u.BM=z.BM) ss" +
+                            " on ss.USERID=u.USERID and to_char(ss.QTTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "'" +
+                            " and not exists(select 1 from tb_signout where ss.USERID = USERID AND to_char(QTTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and ss.QTTIME<QTTIME)" +
+                            " left join TB_QJSC q on q.USERID=u.USERID and to_date('" + time + "-" + m + " 000000','yyyy-MM-fmdd hh24miss')<q.QJJSTIME and to_date('" + time + "-" + m + " 235959','yyyy-MM-fmdd hh24miss')>q.QJKSTIME and q.SQJG=1 " +
+                            " and not exists(select 1 from TB_QJSC where q.USERID = USERID AND to_date('" + time + "-" + m + " 000000','yyyy-MM-fmdd hh24miss')<QJJSTIME and to_date('" + time + "-" + m + " 235959','yyyy-MM-fmdd hh24miss')>QJKSTIME and SQJG=1 and q.QJKSTIME<QJKSTIME)" +
+                            " left join (select BGTIME,USERID from TB_WQBGSC where SQJG=1 ) w on w.USERID=u.USERID and to_char(w.BGTIME, 'yyyy-MM-fmdd') ='" + time + "-" + m + "'" +
+                            " and not exists(select 1 from TB_WQBGSC where w.USERID = USERID AND to_char(BGTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and SQJG=1 and w.BGTIME<BGTIME)" +
+                            " where 1=1 ";
+                    sql += tj;
+                    sql += " ) d" + m + " on u.USERID=d" + m + ".USERID";
+                }
+                sql += " order by u.bm,nlssort(u.username,'NLS_SORT=SCHINESE_PINYIN_M')";
+            }
+            return sql;
+        }
+
+        public String monthlyFieldWork(Map<String, Object> map){
+            String username = String.valueOf(map.get("username"));
+            String department = String.valueOf(map.get("department"));
+            String time = String.valueOf(map.get("time"));
+            String tj = "";
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            if (username != null && !username.isEmpty() && !username.equals("null") && username.length() > 0) {
+                tj += " and u.USERNAME like '%" + username + "%'";
+            }
+            if (department != null && !department.isEmpty() && !department.equals("null") && department.length() > 0) {
+                tj += " and u.bm = '" + department + "'";
+            }
+            String sql = "";
+            int maxDate = 0;
+            if (time != null && !time.isEmpty() && !time.equals("null") && time.length() > 0) {
+                String[] year_month = time.split("-");
+                Calendar cal = Calendar.getInstance();
+                int year = Integer.parseInt(year_month[0]);
+                int month = Integer.parseInt(year_month[1]) - 1;
+                cal.set(Calendar.YEAR, year);
+                cal.set(Calendar.MONTH, month);
+                cal.set(Calendar.DATE, 1);
+                cal.roll(Calendar.DATE, -1);
+                maxDate = cal.get(Calendar.DATE);
+                sql += "select u.USERID, u.USERNAME";
+                for (int i = 1; i <= maxDate; i++) {
+                    int m = i;
+                    sql +=", d" + m + ".swbg" + m + ",d" + m + ".xwbg" + m ;
+                }
+                sql +=" from (select distinct u.USERID, u.USERNAME, u.bm from tuser u ,TB_WQBGSC w where  u.USERID=w.USERID and to_char(w.BGTIME, 'yyyy-MM')='"+time+"'";
+                sql += tj;
+                sql += " ) u";
+                for (int i = 1; i <= maxDate; i++) {
+                    int m = i;
+                    sql += " left join (select distinct u.USERID, to_char(w.BGTIME,'yyyy-MM-dd hh24:mi:ss') swbg" + m + ", to_char(ww.BGTIME,'yyyy-MM-dd hh24:mi:ss') xwbg" + m + " from tuser u" +
+                            " left join tb_bm b on u.bm=b.code " +
+                            " left join (select BGTIME,USERID from TB_WQBGSC) w on w.USERID=u.USERID and to_date('" + time + "-" + m + " 120000','yyyy-MM-fmdd hh24miss')>w.BGTIME and to_char(w.BGTIME, 'yyyy-MM-fmdd') ='" + time + "-" + m + "'" +
+                            " and not exists(select 1 from TB_WQBGSC where w.USERID = USERID and to_date('" + time + "-" + m + " 120000','yyyy-MM-fmdd hh24miss')>w.BGTIME and to_char(BGTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and w.BGTIME>BGTIME)" +
+                            " left join (select BGTIME,USERID from TB_WQBGSC) ww on ww.USERID=u.USERID and to_date('" + time + "-" + m + " 120000','yyyy-MM-fmdd hh24miss')<=ww.BGTIME and to_char(ww.BGTIME, 'yyyy-MM-fmdd') ='" + time + "-" + m + "'" +
+                            " and not exists(select 1 from TB_WQBGSC where ww.USERID = USERID  and to_date('" + time + "-" + m + " 120000','yyyy-MM-fmdd hh24miss')<=ww.BGTIME and to_char(BGTIME,'yyyy-MM-fmdd')='" + time + "-" + m + "' and ww.BGTIME<BGTIME)" +
+                            " where 1=1 ";
+                    sql += tj;
+                    sql += " ) d" + m + " on u.USERID=d" + m + ".USERID";
+                }
+                sql += " order by u.bm,nlssort(u.username,'NLS_SORT=SCHINESE_PINYIN_M')";
+            }
+            return sql;
+        }
+    }
+}

@@ -1,0 +1,22 @@
+package com.twkj;
+
+
+import com.twkj.dao.UserDao;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.List;
+import java.util.Map;
+
+@RunWith(JUnit4.class)
+@SpringBootTest
+public class TwkpApplicationTests {
+
+    @Test
+    public void contextLoads() {
+   }
+
+}

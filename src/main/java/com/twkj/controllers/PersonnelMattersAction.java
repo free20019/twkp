@@ -1,0 +1,355 @@
+package com.twkj.controllers;
+
+import com.twkj.helper.DownloadAct;
+import com.twkj.helper.JacksonUtil;
+import com.twkj.service.PersonnelMattersService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author: xianlehuang
+ * @Description:人事
+ * @date: 2019/11/13 - 9:32
+ */
+@Controller
+@RequestMapping("/personnelMatters")
+public class PersonnelMattersAction {
+    @Autowired
+    private PersonnelMattersService personnelMattersService;
+    private DownloadAct downloadAct = new DownloadAct();
+    private JacksonUtil jacksonUtil = JacksonUtil.buildNormalBinder();
+
+    //用户下拉栏
+    @RequestMapping("/getUser")
+    @ResponseBody
+    public String getUser(HttpServletRequest request){
+        String msg = personnelMattersService.getUser(request);
+        return msg;
+    }
+
+    //个人晨报查询
+    @RequestMapping("/findPersonalMorningReport")
+    @ResponseBody
+    public String findPersonalMorningReport(HttpServletRequest request){
+        String msg = personnelMattersService.findPersonalMorningReport(request);
+        return msg;
+    }
+
+    //个人晨报导出
+    @RequestMapping("/findPersonalMorningReportExcel")
+    @ResponseBody
+    public String findPersonalMorningReportExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String a[] = {"姓名","部门","日期","昨日完成及进度","待解决问题","今日计划"};//导出列明
+        String b[] = {"PERSON_NAME","DEPARTMENT","COMMIT_DATE","YESTERDAY_PROGRESS","AWAIT_SOLUTION","TODAY_PLAN"};//导出map中的key
+        String gzb = "个人晨报";//导出sheet名和导出的文件名
+        String msg = personnelMattersService.findPersonalMorningReport(request);
+        List<Map<String, Object>> list = DownloadAct.parseJSON2List2(msg);
+        downloadAct.download(request,response,a,b,gzb,list);
+        return null;
+    }
+
+    //个人晨报添加
+    @RequestMapping("/addPersonalMorningReport")
+    @ResponseBody
+    public String addPersonalMorningReport(HttpServletRequest request){
+        return personnelMattersService.addPersonalMorningReport(request);
+    }
+    //个人晨报修改
+    @RequestMapping("/updatePersonalMorningReport")
+    @ResponseBody
+    public String updatePersonalMorningReport(HttpServletRequest request){
+        return personnelMattersService.updatePersonalMorningReport(request);
+    }
+
+    //个人晨报删除
+    @RequestMapping("/deletePersonalMorningReport")
+    @ResponseBody
+    public String deletePersonalMorningReport(HttpServletRequest request){
+        return personnelMattersService.deletePersonalMorningReport(request);
+    }
+
+    //工作总结查询
+    @RequestMapping("/findWorkSummary")
+    @ResponseBody
+    public String findWorkSummary(HttpServletRequest request){
+        String msg = personnelMattersService.findWorkSummary(request);
+        return msg;
+    }
+
+    //工作总结导出
+    @RequestMapping("/findWorkSummaryExcel")
+    @ResponseBody
+    public String findWorkSummaryExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String a[] = {"姓名","年龄","性别","最高学历","政治面貌","岗位","所属部门","进公司时间","工作总结","部门评价","部门负责人","评价日期"};//导出列明
+        String b[] = {"PERSON_NAME","AGE","SEX","EDUCATION","POLITIC_COUNTENANCE","POST","DEPARTMENT","JOIN_TIME","WORK_SUMMARY","DEPARTMENT_EVALUATION","DEPARTMENT_LEADER","EVALUATION_DATE"};//导出map中的key
+        String gzb = "工作总结";//导出sheet名和导出的文件名
+        String msg = personnelMattersService.findWorkSummary(request);
+        List<Map<String, Object>> list = DownloadAct.parseJSON2List2(msg);
+        downloadAct.download(request,response,a,b,gzb,list);
+        return null;
+    }
+
+    //工作总结添加
+    @RequestMapping("/addWorkSummary")
+    @ResponseBody
+    public String addWorkSummary(HttpServletRequest request){
+        return personnelMattersService.addWorkSummary(request);
+    }
+
+    //工作总结评价
+    @RequestMapping("/evaluateWorkSummary")
+    @ResponseBody
+    public String evaluateWorkSummary(HttpServletRequest request){
+        return personnelMattersService.evaluateWorkSummary(request);
+    }
+
+    //工作总结修改
+    @RequestMapping("/updateWorkSummary")
+    @ResponseBody
+    public String updateWorkSummary(HttpServletRequest request){
+        return personnelMattersService.updateWorkSummary(request);
+    }
+
+    //工作总结删除
+    @RequestMapping("/deleteWorkSummary")
+    @ResponseBody
+    public String deleteWorkSummary(HttpServletRequest request){
+        return personnelMattersService.deleteWorkSummary(request);
+    }
+
+    //会议纪要查询
+    @RequestMapping("/findMeetingMinutes")
+    @ResponseBody
+    public String findMeetingMinutes(HttpServletRequest request){
+        String msg = personnelMattersService.findMeetingMinutes(request);
+        return msg;
+    }
+
+    //会议纪要导出
+    @RequestMapping("/findMeetingMinutesExcel")
+    @ResponseBody
+    public String findMeetingMinutesExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String a[] = {"会议时间","会议地点","参会人员","会议主持","会议记录","本周工作小结","下周重点工作","决定事项和要求"};//导出列明
+        String b[] = {"MEETING_TIME","MEETING_PLACE","PARTICIPANTS","HOST_MEETING","MEETING_RECORD","JOB_SUMMARY","NEXT_WEEK_WORK","DECISION_MATTER"};//导出map中的key
+        String gzb = "会议纪要";//导出sheet名和导出的文件名
+        String msg = personnelMattersService.findMeetingMinutes(request);
+        List<Map<String, Object>> list = DownloadAct.parseJSON2List2(msg);
+        downloadAct.download(request,response,a,b,gzb,list);
+        return null;
+    }
+
+    //会议纪要添加
+    @RequestMapping("/addMeetingMinutes")
+    @ResponseBody
+    public String addMeetingMinutes(HttpServletRequest request){
+        return personnelMattersService.addMeetingMinutes(request);
+    }
+
+    //会议纪要修改
+    @RequestMapping("/updateMeetingMinutes")
+    @ResponseBody
+    public String updateMeetingMinutes(HttpServletRequest request){
+        return personnelMattersService.updateMeetingMinutes(request);
+    }
+
+    //会议纪要删除
+    @RequestMapping("/deleteMeetingMinutes")
+    @ResponseBody
+    public String deleteMeetingMinutes(HttpServletRequest request){
+        return personnelMattersService.deleteMeetingMinutes(request);
+    }
+
+    //离职交接查询
+    @RequestMapping("/findTurnoverHandover")
+    @ResponseBody
+    public String findTurnoverHandover(HttpServletRequest request){
+        String msg = personnelMattersService.findTurnoverHandover(request);
+        return msg;
+    }
+
+    //离职交接导出
+    @RequestMapping("/findTurnoverHandoverExcel")
+    @ResponseBody
+    public String findTurnoverHandoverExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String a[] = {"离职人","离职人岗位","离职日期","工作内容交接","网络管理交接","综合部交接","部门经理审核状态","系统管理员审核状态","经理审核状态","经办人","经办人日期"};//导出列明
+        String b[] = {"PERSON_NAME","POST","SEPARATION_TIME","WORK_HANDOVER","NET_HANDOVER","GENERAL_HANDOVER","DEPT_STATUS","NET_STATUS","GENERAL_STATUS","MANAGER","MANAGER_TIME"};//导出map中的key
+        String gzb = "离职交接";//导出sheet名和导出的文件名
+        String msg = personnelMattersService.findTurnoverHandover(request);
+        List<Map<String, Object>> list = DownloadAct.parseJSON2List2(msg);
+        downloadAct.download(request,response,a,b,gzb,list);
+        return null;
+    }
+
+    //离职交接添加
+    @RequestMapping("/addTurnoverHandover")
+    @ResponseBody
+    public String addTurnoverHandover(HttpServletRequest request){
+        return personnelMattersService.addTurnoverHandover(request);
+    }
+
+    //离职交接审批
+    @RequestMapping("/auditTurnoverHandover")
+    @ResponseBody
+    public String auditTurnoverHandover(HttpServletRequest request){
+        return personnelMattersService.auditTurnoverHandover(request);
+    }
+
+    //离职交接修改
+    @RequestMapping("/updateTurnoverHandover")
+    @ResponseBody
+    public String updateTurnoverHandover(HttpServletRequest request){
+        return personnelMattersService.updateTurnoverHandover(request);
+    }
+
+    //离职交接删除
+    @RequestMapping("/deleteTurnoverHandover")
+    @ResponseBody
+    public String deleteTurnoverHandover(HttpServletRequest request){
+        return personnelMattersService.deleteTurnoverHandover(request);
+    }
+
+    //员工登记表查询
+    @RequestMapping("/findEmployeeRegistration")
+    @ResponseBody
+    public String findEmployeeRegistration(HttpServletRequest request){
+        String msg = personnelMattersService.findEmployeeRegistration(request);
+        return msg;
+    }
+
+    //员工登记表导出
+    @RequestMapping("/findEmployeeRegistrationExcel")
+    @ResponseBody
+    public String findEmployeeRegistrationExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String a[] = {"姓名","性别","民族","出生日期","政治面貌","学位学历","职称","身份证号","进公司时间","何院（校）何专业毕业","现住地址（地址）","户口地址（具体）","户口所在地（省/市）","户口性质","婚姻状况","电话","手机号码","邮编"};//导出列明
+        String b[] = {"NAME","SEX","NATION","BIRTH_DATE","POLITICAL_OUTLOOK","ACADEMIC_DEGREE","TITLE","ID_NUMBER","JOIN_TIME","SCHOOL_PROFESSION","CURRENT_ADDRESS","HUKOU_ADDRESS","HUKOU_LOCATION","HUKOU_NATURE","MARITAL_STATUS","TELPHONE","PHONE","POSTAL_CODE"};//导出map中的key
+        String gzb = "员工登记表";//导出sheet名和导出的文件名
+        String msg = personnelMattersService.findEmployeeRegistration(request);
+        List<Map<String, Object>> list = DownloadAct.parseJSON2List2(msg);
+        downloadAct.download(request,response,a,b,gzb,list);
+        return null;
+    }
+
+    //员工登记表添加
+    @RequestMapping("/addEmployeeRegistration")
+    @ResponseBody
+    public String addEmployeeRegistration(HttpServletRequest request){
+        return personnelMattersService.addEmployeeRegistration(request);
+    }
+    //员工登记表修改
+    @RequestMapping("/updateEmployeeRegistration")
+    @ResponseBody
+    public String updateEmployeeRegistration(HttpServletRequest request){
+        return personnelMattersService.updateEmployeeRegistration(request);
+    }
+
+    //员工登记表删除
+    @RequestMapping("/deleteEmployeeRegistration")
+    @ResponseBody
+    public String deleteEmployeeRegistration(HttpServletRequest request){
+        return personnelMattersService.deleteEmployeeRegistration(request);
+    }
+
+    //员工离职申请查询
+    @RequestMapping("/findEmployeeLeaveApplication")
+    @ResponseBody
+    public String findEmployeeLeaveApplication(HttpServletRequest request){
+        String msg = personnelMattersService.findEmployeeLeaveApplication(request);
+        return msg;
+    }
+
+    //员工离职申请导出
+    @RequestMapping("/findEmployeeLeaveApplicationExcel")
+    @ResponseBody
+    public String findEmployeeLeaveApplicationExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String a[] = {"姓名","部门","职务","入职时间","离职时间","离职原因","部门审批","人事审批","总经理审批"};//导出列明
+        String b[] = {"NAME","DEPARTMENT","TITLE","JOIN_TIME","LEAVE_TIME","LEAVE_REASON","DEPARTMENT_SIGNATURE","HIRING_SIGNATURE","GENERAL_MANAGER_SIGNATURE"};//导出map中的key
+        String gzb = "员工离职申请";//导出sheet名和导出的文件名
+        String msg = personnelMattersService.findEmployeeLeaveApplication(request);
+        List<Map<String, Object>> list = DownloadAct.parseJSON2List2(msg);
+        downloadAct.download(request,response,a,b,gzb,list);
+        return null;
+    }
+
+    //员工离职申请添加
+    @RequestMapping("/addEmployeeLeaveApplication")
+    @ResponseBody
+    public String addEmployeeLeaveApplication(HttpServletRequest request){
+        return personnelMattersService.addEmployeeLeaveApplication(request);
+    }
+
+    //员工离职申请修改
+    @RequestMapping("/updateEmployeeLeaveApplication")
+    @ResponseBody
+    public String updateEmployeeLeaveApplication(HttpServletRequest request){
+        return personnelMattersService.updateEmployeeLeaveApplication(request);
+    }
+
+    //员工离职申请删除
+    @RequestMapping("/deleteEmployeeLeaveApplication")
+    @ResponseBody
+    public String deleteEmployeeLeaveApplication(HttpServletRequest request){
+        return personnelMattersService.deleteEmployeeLeaveApplication(request);
+    }
+
+    //员工离职申请审批
+    @RequestMapping("/auditEmployeeLeaveApplication")
+    @ResponseBody
+    public String auditEmployeeLeaveApplication(HttpServletRequest request){
+        return personnelMattersService.auditEmployeeLeaveApplication(request);
+    }
+
+    //转正申请查询
+    @RequestMapping("/findCorrectionApplication")
+    @ResponseBody
+    public String findCorrectionApplication(HttpServletRequest request){
+        String msg = personnelMattersService.findCorrectionApplication(request);
+        return msg;
+    }
+
+    //转正申请导出
+    @RequestMapping("/findCorrectionApplicationExcel")
+    @ResponseBody
+    public String findCorrectionApplicationExcel(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String a[] = {"姓名","性别","出生日期","身份证号","毕业学校","最高学历","专业","职称","进公司试用日期","申请签订固定劳动合同期限","申请意向及试用总结","项目意见","人事意见","总经理审核"};//导出列明
+        String b[] = {"NAME","SEX","BIRTH_TIME","ID_NUMBER","SCHOOL","ACADEMIC_DEGREE","PROFESSION","TITLE","JOIN_TIME","CONTRACT_PERIOD","TRIAL_SUMMARY","DEPARTMENT_IDEA","HIRING_IDEA","GENERAL_MANAGER_SIGNATURE"};//导出map中的key
+        String gzb = "转正申请";//导出sheet名和导出的文件名
+        String msg = personnelMattersService.findCorrectionApplication(request);
+        List<Map<String, Object>> list = DownloadAct.parseJSON2List2(msg);
+        downloadAct.download(request,response,a,b,gzb,list);
+        return null;
+    }
+
+    //转正申请添加
+    @RequestMapping("/addCorrectionApplication")
+    @ResponseBody
+    public String addCorrectionApplication(HttpServletRequest request){
+        return personnelMattersService.addCorrectionApplication(request);
+    }
+    //转正申请审批
+    @RequestMapping("/auditCorrectionApplication")
+    @ResponseBody
+    public String auditCorrectionApplication(HttpServletRequest request){
+        return personnelMattersService.auditCorrectionApplication(request);
+    }
+    //转正申请修改
+    @RequestMapping("/updateCorrectionApplication")
+    @ResponseBody
+    public String updateCorrectionApplication(HttpServletRequest request){
+        return personnelMattersService.updateCorrectionApplication(request);
+    }
+
+    //转正申请删除
+    @RequestMapping("/deleteCorrectionApplication")
+    @ResponseBody
+    public String deleteCorrectionApplication(HttpServletRequest request){
+        return personnelMattersService.deleteCorrectionApplication(request);
+    }
+}

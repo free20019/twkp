@@ -1,0 +1,169 @@
+package com.twkj.controllers;
+
+import com.twkj.helper.DownloadAct;
+import com.twkj.helper.JacksonUtil;
+import com.twkj.service.PersonnelMattersService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpServletRequest;
+
+/**
+ * @author: xianlehuang
+ * @Description:人事
+ * @date: 2019/11/13 - 9:32
+ */
+@Controller
+@RequestMapping("/personnelMatters")
+public class PersonnelMattersAction {
+    @Autowired
+    private PersonnelMattersService personnelMattersService;
+    private DownloadAct downloadAct = new DownloadAct();
+    private JacksonUtil jacksonUtil = JacksonUtil.buildNormalBinder();
+
+    //用户下拉栏
+    @RequestMapping("/getUser")
+    @ResponseBody
+    public String getUser(HttpServletRequest request){
+        String msg = personnelMattersService.getUser(request);
+        return msg;
+    }
+
+    //个人晨报查询
+    @RequestMapping("/findPersonalMorningReport")
+    @ResponseBody
+    public String findPersonalMorningReport(HttpServletRequest request){
+        String msg = personnelMattersService.findPersonalMorningReport(request);
+        return msg;
+    }
+
+    //工作总结查询
+    @RequestMapping("/findWorkSummary")
+    @ResponseBody
+    public String findWorkSummary(HttpServletRequest request){
+        String msg = personnelMattersService.findWorkSummary(request);
+        return msg;
+    }
+
+    //工作总结添加
+    @RequestMapping("/addWorkSummary")
+    @ResponseBody
+    public String addWorkSummary(HttpServletRequest request){
+        return personnelMattersService.addWorkSummary(request);
+    }
+
+    //工作总结评价
+    @RequestMapping("/evaluateWorkSummary")
+    @ResponseBody
+    public String evaluateWorkSummary(HttpServletRequest request){
+        return personnelMattersService.evaluateWorkSummary(request);
+    }
+
+    //会议纪要查询
+    @RequestMapping("/findMeetingMinutes")
+    @ResponseBody
+    public String findMeetingMinutes(HttpServletRequest request){
+        String msg = personnelMattersService.findMeetingMinutes(request);
+        return msg;
+    }
+
+    //会议纪要添加
+    @RequestMapping("/addMeetingMinutes")
+    @ResponseBody
+    public String addMeetingMinutes(HttpServletRequest request){
+        return personnelMattersService.addMeetingMinutes(request);
+    }
+
+    //离职交接查询
+    @RequestMapping("/findTurnoverHandover")
+    @ResponseBody
+    public String findTurnoverHandover(HttpServletRequest request){
+        String msg = personnelMattersService.findTurnoverHandover(request);
+        return msg;
+    }
+
+    //离职交接添加
+    @RequestMapping("/addTurnoverHandover")
+    @ResponseBody
+    public String addTurnoverHandover(HttpServletRequest request){
+        return personnelMattersService.addTurnoverHandover(request);
+    }
+    //离职交接审批
+    @RequestMapping("/auditTurnoverHandover")
+    @ResponseBody
+    public String auditTurnoverHandover(HttpServletRequest request){
+        return personnelMattersService.auditTurnoverHandover(request);
+    }
+
+    //员工登记表查询
+    @RequestMapping("/findEmployeeRegistration")
+    @ResponseBody
+    public String findEmployeeRegistration(HttpServletRequest request){
+        String msg = personnelMattersService.findEmployeeRegistration(request);
+        return msg;
+    }
+
+    //员工登记表添加
+    @RequestMapping("/addEmployeeRegistration")
+    @ResponseBody
+    public String addEmployeeRegistration(HttpServletRequest request){
+        return personnelMattersService.addEmployeeRegistration(request);
+    }
+    //员工登记表修改
+    @RequestMapping("/updateEmployeeRegistration")
+    @ResponseBody
+    public String updateEmployeeRegistration(HttpServletRequest request){
+        return personnelMattersService.updateEmployeeRegistration(request);
+    }
+
+    //员工登记表删除
+    @RequestMapping("/deleteEmployeeRegistration")
+    @ResponseBody
+    public String deleteEmployeeRegistration(HttpServletRequest request){
+        return personnelMattersService.deleteEmployeeRegistration(request);
+    }
+
+    //员工离职申请查询
+    @RequestMapping("/findEmployeeLeaveApplication")
+    @ResponseBody
+    public String findEmployeeLeaveApplication(HttpServletRequest request){
+        String msg = personnelMattersService.findEmployeeLeaveApplication(request);
+        return msg;
+    }
+
+    //员工离职申请添加
+    @RequestMapping("/addEmployeeLeaveApplication")
+    @ResponseBody
+    public String addEmployeeLeaveApplication(HttpServletRequest request){
+        return personnelMattersService.addEmployeeLeaveApplication(request);
+    }
+    //员工离职申请审批
+    @RequestMapping("/auditEmployeeLeaveApplication")
+    @ResponseBody
+    public String auditEmployeeLeaveApplication(HttpServletRequest request){
+        return personnelMattersService.auditEmployeeLeaveApplication(request);
+    }
+
+    //转正申请查询
+    @RequestMapping("/findCorrectionApplication")
+    @ResponseBody
+    public String findCorrectionApplication(HttpServletRequest request){
+        String msg = personnelMattersService.findCorrectionApplication(request);
+        return msg;
+    }
+
+    //转正申请添加
+    @RequestMapping("/addCorrectionApplication")
+    @ResponseBody
+    public String addCorrectionApplication(HttpServletRequest request){
+        return personnelMattersService.addCorrectionApplication(request);
+    }
+    //转正申请审批
+    @RequestMapping("/auditCorrectionApplication")
+    @ResponseBody
+    public String auditCorrectionApplication(HttpServletRequest request){
+        return personnelMattersService.auditCorrectionApplication(request);
+    }
+}

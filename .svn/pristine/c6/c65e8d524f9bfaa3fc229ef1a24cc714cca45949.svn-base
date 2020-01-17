@@ -1,0 +1,203 @@
+package com.twkj.service;
+
+import com.twkj.dao.UserDao;
+import com.twkj.helper.JacksonUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author: xianlehuang
+ * @Description:
+ * @date: 2019/12/4 - 10:18
+ */
+@Service
+public class UserService {
+    @Autowired
+    private UserDao userDao;
+
+    private JacksonUtil jacksonUtil = JacksonUtil.buildNormalBinder();
+
+    public String power(HttpServletRequest request) {
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        try {
+            list = userDao.power();
+        }catch (Exception e){
+            return jacksonUtil.toJson(list);
+        }
+        return jacksonUtil.toJson(list);
+    }
+
+    public String login(HttpServletRequest request) {
+        String loginname = request.getParameter("loginname")==null?"":request.getParameter("loginname");
+        String password = request.getParameter("password")==null?"":request.getParameter("password");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("loginname",loginname);
+        map.put("password",password);
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        try {
+            list = userDao.login(map);
+        }catch (Exception e){
+            return jacksonUtil.toJson(list);
+        }
+        if(list.size()==1){
+            request.getSession().setAttribute("userid", list.get(0).get("USERID"));
+            request.getSession().setAttribute("username", list.get(0).get("USERNAME"));
+            request.getSession().setAttribute("post_name", list.get(0).get("POST_NAME"));
+            request.getSession().setAttribute("power_name", list.get(0).get("POWER_NAME"));
+            request.getSession().setAttribute("power_id", list.get(0).get("POWER_ID"));
+            request.getSession().setAttribute("list", list);
+        }
+        return jacksonUtil.toJson(list);
+    }
+
+
+    public String index(HttpServletRequest request) {
+        List<Map<String, Object>> list = (List<Map<String, Object>>) request.getSession().getAttribute("list");
+        return jacksonUtil.toJson(list);
+    }
+
+    public String findPost(HttpServletRequest request) {
+        String post_name = request.getParameter("post_name")==null?"":request.getParameter("post_name");
+        String power_id = request.getParameter("power_id")==null?"":request.getParameter("power_id");
+        String power_name = request.getParameter("power_name")==null?"":request.getParameter("power_name");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("post_name",post_name);
+        map.put("power_id",power_id);
+        map.put("power_name",power_name);
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        try {
+            list = userDao.findPost(map);
+        }catch (Exception e){
+            return jacksonUtil.toJson(list);
+        }
+        return jacksonUtil.toJson(list);
+    }
+
+    public String addPost(HttpServletRequest request) {
+        String post_name = request.getParameter("post_name")==null?"":request.getParameter("post_name");
+        String power_id = request.getParameter("power_id")==null?"":request.getParameter("power_id");
+        String power_name = request.getParameter("power_name")==null?"":request.getParameter("power_name");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("post_name",post_name);
+        map.put("power_id",power_id);
+        map.put("power_name",power_name);
+        int count =0;
+        try {
+            count = userDao.addPost(map);
+        }catch (Exception e){
+            count =0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String updatePost(HttpServletRequest request) {
+        String post_name = request.getParameter("post_name")==null?"":request.getParameter("post_name");
+        String power_id = request.getParameter("power_id")==null?"":request.getParameter("power_id");
+        String power_name = request.getParameter("power_name")==null?"":request.getParameter("power_name");
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("post_name",post_name);
+        map.put("power_id",power_id);
+        map.put("power_name",power_name);
+        map.put("id",id);
+        int count =0;
+        try {
+            count = userDao.updatePost(map);
+        }catch (Exception e){
+            count =0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String deletePost(HttpServletRequest request) {
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("id",id);
+        int count =0;
+        try {
+            count = userDao.deletePost(map);
+        }catch (Exception e){
+            count =0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String findUser(HttpServletRequest request) {
+        String department = request.getParameter("department")==null?"":request.getParameter("department");
+        String username = request.getParameter("username")==null?"":request.getParameter("username");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("department",department);
+        map.put("username",username);
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        try {
+            list = userDao.findUser(map);
+        }catch (Exception e){
+            return jacksonUtil.toJson(list);
+        }
+        return jacksonUtil.toJson(list);
+    }
+
+    public String addUser(HttpServletRequest request) {
+        String department = request.getParameter("department")==null?"":request.getParameter("department");
+        String username = request.getParameter("username")==null?"":request.getParameter("username");
+        String password = request.getParameter("password")==null?"":request.getParameter("password");
+        String post_id = request.getParameter("post_id")==null?"":request.getParameter("post_id");
+        String loginname = request.getParameter("loginname")==null?"":request.getParameter("loginname");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("department",department);
+        map.put("username",username);
+        map.put("password",password);
+        map.put("post_id",post_id);
+        map.put("loginname",loginname);
+        int count =0;
+        try {
+            count = userDao.addUser(map);
+        }catch (Exception e){
+            count =0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String updateUser(HttpServletRequest request) {
+        String department = request.getParameter("department")==null?"":request.getParameter("department");
+        String username = request.getParameter("username")==null?"":request.getParameter("username");
+        String password = request.getParameter("password")==null?"":request.getParameter("password");
+        String post_id = request.getParameter("post_id")==null?"":request.getParameter("post_id");
+        String loginname = request.getParameter("loginname")==null?"":request.getParameter("loginname");
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("department",department);
+        map.put("username",username);
+        map.put("password",password);
+        map.put("post_id",post_id);
+        map.put("loginname",loginname);
+        map.put("id",id);
+        int count =0;
+        try {
+            count = userDao.updateUser(map);
+        }catch (Exception e){
+            count =0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String deleteUser(HttpServletRequest request) {
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("id",id);
+        int count =0;
+        try {
+            count = userDao.deleteUser(map);
+        }catch (Exception e){
+            count =0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+}
