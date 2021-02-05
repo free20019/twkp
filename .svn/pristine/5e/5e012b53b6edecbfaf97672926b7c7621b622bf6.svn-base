@@ -1,0 +1,454 @@
+package com.twkj.service;
+
+import com.twkj.dao.EvaluationManageDao;
+import com.twkj.helper.JacksonUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
+
+/**
+ * @author: xianlehuang
+ * @Description:
+ * @date: 2019/12/5 - 14:52
+ */
+@Service
+public class EvaluationManageService {
+
+    @Autowired
+    EvaluationManageDao evaluationManageDao;
+
+    private JacksonUtil jacksonUtil = JacksonUtil.buildNormalBinder();
+
+    public String findMonthlyCheck(HttpServletRequest request) {
+        String time = request.getParameter("time")==null?"":request.getParameter("time");
+        String name = request.getParameter("name")==null?"":request.getParameter("name");
+//        String name = request.getSession().getAttribute("username")==null?"":request.getSession().getAttribute("username").toString();
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("time",time.replace("-","."));
+        map.put("name",name);
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        try {
+            list = evaluationManageDao.findMonthlyCheck(map);
+        }catch (Exception e){
+            return jacksonUtil.toJson(list);
+        }
+        return jacksonUtil.toJson(list);
+    }
+
+    public String findMonthlyCheckDetails(HttpServletRequest request) {
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("id",id);
+        List<Map<String, Object>> list_thismonth = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> list_lastmonth = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> list_workquality = new ArrayList<Map<String, Object>>();
+        try {
+            list_thismonth = evaluationManageDao.findMonthlyCheck_thismonth(map);
+            list_lastmonth = evaluationManageDao.findMonthlyCheck_lastmonth(map);
+            list_workquality = evaluationManageDao.findMonthlyCheck_workquality(map);
+        }catch (Exception e){
+        }
+        Map<String,Object> mapAll = new HashMap<String,Object>();
+        mapAll.put("thismonth",list_thismonth);
+        mapAll.put("lastmonth",list_lastmonth);
+        mapAll.put("workquality",list_workquality);
+        return jacksonUtil.toJson(mapAll);
+    }
+
+    @Transactional
+    public String addMonthlyCheck(HttpServletRequest request) {
+        String time = request.getParameter("time")==null?"":request.getParameter("time");
+        String name = request.getParameter("name")==null?"":request.getParameter("name");
+        String department = request.getParameter("department")==null?"":request.getParameter("department");
+        String cycle = request.getParameter("cycle")==null?"":request.getParameter("cycle");
+        String riqi = request.getParameter("riqi")==null?"":request.getParameter("riqi");
+        String grade = request.getParameter("grade")==null?"":request.getParameter("grade");
+//        String wid = request.getParameter("wid")==null?"":request.getParameter("wid");
+//        String audit_grade = request.getParameter("audit_grade")==null?"":request.getParameter("audit_grade");
+        String thismonthwork = request.getParameter("thismonthwork")==null?"":request.getParameter("thismonthwork");
+        String thismonthtarget = request.getParameter("thismonthtarget")==null?"":request.getParameter("thismonthtarget");
+        String thismonthactualperformance = request.getParameter("thismonthactualperformance")==null?"":request.getParameter("thismonthactualperformance");
+        String thismonthcompletionrate = request.getParameter("thismonthcompletionrate")==null?"":request.getParameter("thismonthcompletionrate");
+        String thismonthtaskscore = request.getParameter("thismonthtaskscore")==null?"":request.getParameter("thismonthtaskscore");
+        String thismonthgrade = request.getParameter("thismonthgrade")==null?"":request.getParameter("thismonthgrade");
+        String lastmonthwork = request.getParameter("lastmonthwork")==null?"":request.getParameter("lastmonthwork");
+        String lastmonthtarget = request.getParameter("lastmonthtarget")==null?"":request.getParameter("lastmonthtarget");
+        String lastmonthcomments = request.getParameter("lastmonthcomments")==null?"":request.getParameter("lastmonthcomments");
+        String selfworthdescribe = request.getParameter("selfworthdescribe")==null?"":request.getParameter("selfworthdescribe");
+        String selfworthselfevaluation = request.getParameter("selfworthselfevaluation")==null?"":request.getParameter("selfworthselfevaluation");
+        String selfworthgrade = request.getParameter("selfworthgrade")==null?"":request.getParameter("selfworthgrade");
+        String teamworkdescribe = request.getParameter("teamworkdescribe")==null?"":request.getParameter("teamworkdescribe");
+        String teamworkselfevaluation = request.getParameter("teamworkselfevaluation")==null?"":request.getParameter("teamworkselfevaluation");
+        String teamworkgrade = request.getParameter("teamworkgrade")==null?"":request.getParameter("teamworkgrade");
+        String customerservicedescribe = request.getParameter("customerservicedescribe")==null?"":request.getParameter("customerservicedescribe");
+        String customerserviceselfevaluation = request.getParameter("customerserviceselfevaluation")==null?"":request.getParameter("customerserviceselfevaluation");
+        String customerservicegrade = request.getParameter("customerservicegrade")==null?"":request.getParameter("customerservicegrade");
+        String commentsdepartmentheads = request.getParameter("commentsdepartmentheads")==null?"":request.getParameter("commentsdepartmentheads");
+        String companyleadersapproval = request.getParameter("companyleadersapproval")==null?"":request.getParameter("companyleadersapproval");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("time",time.replace("-","."));
+        map.put("name",name);
+        map.put("department",department);
+        map.put("cycle",cycle.replace("-",".").replace(" ~ ","--"));
+        map.put("riqi",riqi.replace("-","."));
+        map.put("grade",grade);
+//        map.put("wid",wid);
+//        map.put("audit_grade",audit_grade);
+        map.put("thismonthwork",thismonthwork);
+        map.put("thismonthtarget",thismonthtarget);
+        map.put("thismonthactualperformance",thismonthactualperformance);
+        map.put("thismonthcompletionrate",thismonthcompletionrate);
+        map.put("thismonthtaskscore",thismonthtaskscore);
+        map.put("thismonthgrade",thismonthgrade);
+        map.put("lastmonthwork",lastmonthwork);
+        map.put("lastmonthtarget",lastmonthtarget);
+        map.put("lastmonthcomments",lastmonthcomments);
+        map.put("selfworthdescribe",selfworthdescribe);
+        map.put("selfworthselfevaluation",selfworthselfevaluation);
+        map.put("selfworthgrade",selfworthgrade);
+        map.put("teamworkdescribe",teamworkdescribe);
+        map.put("teamworkselfevaluation",teamworkselfevaluation);
+        map.put("teamworkgrade",teamworkgrade);
+        map.put("customerservicedescribe",customerservicedescribe);
+        map.put("customerserviceselfevaluation",customerserviceselfevaluation);
+        map.put("customerservicegrade",customerservicegrade);
+        map.put("commentsdepartmentheads",commentsdepartmentheads);
+        map.put("companyleadersapproval",companyleadersapproval);
+        int count =0;
+        try {
+            //判断该用户这个月有无上传考核
+            if(evaluationManageDao.findMonthlyCheck(map).size()>0){
+                return jacksonUtil.toJson(-2);
+            }
+            map.put("id", System.currentTimeMillis());
+            count += evaluationManageDao.addMonthlyCheck_employee(map);
+            for (int i = 0; i < thismonthwork.split("&nbsp;",-1).length; i++) {
+                map.put("thismonthwork",thismonthwork.split("&nbsp;",-1)[i]);
+                map.put("thismonthtarget",thismonthtarget.split("&nbsp;",-1)[i]);
+                map.put("thismonthactualperformance",thismonthactualperformance.split("&nbsp;",-1)[i]);
+                map.put("thismonthcompletionrate",thismonthcompletionrate.split("&nbsp;",-1)[i]);
+                map.put("thismonthtaskscore",thismonthtaskscore.split("&nbsp;",-1)[i]);
+                map.put("thismonthgrade",thismonthgrade.split("&nbsp;",-1)[i]);
+                count += evaluationManageDao.addMonthlyCheck_thismonth_add(map);
+            }
+            for (int i = 0; i < lastmonthwork.split("&nbsp;",-1).length; i++) {
+                map.put("lastmonthwork",lastmonthwork.split("&nbsp;",-1)[i]);
+                map.put("lastmonthtarget",lastmonthtarget.split("&nbsp;",-1)[i]);
+                map.put("lastmonthcomments",lastmonthcomments.split("&nbsp;",-1)[i]);
+                count += evaluationManageDao.addMonthlyCheck_lastmonth(map);
+            }
+            count += evaluationManageDao.addMonthlyCheck_workquality(map);
+        }catch (Exception e){
+            e.printStackTrace();
+            count =0;
+            throw new RuntimeException("事物回滚");
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    @Transactional
+    public String updateMonthlyCheck(HttpServletRequest request) {
+        String time = request.getParameter("time")==null?"":request.getParameter("time");
+        String name = request.getParameter("name")==null?"":request.getParameter("name");
+        String department = request.getParameter("department")==null?"":request.getParameter("department");
+        String cycle = request.getParameter("cycle")==null?"":request.getParameter("cycle");
+        String riqi = request.getParameter("riqi")==null?"":request.getParameter("riqi");
+        String grade = request.getParameter("grade")==null?"":request.getParameter("grade");
+        String wid = request.getParameter("wid")==null?"":request.getParameter("wid");
+//        String audit_grade = request.getParameter("audit_grade")==null?"":request.getParameter("audit_grade");
+        String thismonthwork = request.getParameter("thismonthwork")==null?"":request.getParameter("thismonthwork");
+        String thismonthtarget = request.getParameter("thismonthtarget")==null?"":request.getParameter("thismonthtarget");
+        String thismonthactualperformance = request.getParameter("thismonthactualperformance")==null?"":request.getParameter("thismonthactualperformance");
+        String thismonthcompletionrate = request.getParameter("thismonthcompletionrate")==null?"":request.getParameter("thismonthcompletionrate");
+        String thismonthtaskscore = request.getParameter("thismonthtaskscore")==null?"":request.getParameter("thismonthtaskscore");
+        String thismonthgrade = request.getParameter("thismonthgrade")==null?"":request.getParameter("thismonthgrade");
+        String lastmonthwork = request.getParameter("lastmonthwork")==null?"":request.getParameter("lastmonthwork");
+        String lastmonthtarget = request.getParameter("lastmonthtarget")==null?"":request.getParameter("lastmonthtarget");
+        String lastmonthcomments = request.getParameter("lastmonthcomments")==null?"":request.getParameter("lastmonthcomments");
+        String selfworthdescribe = request.getParameter("selfworthdescribe")==null?"":request.getParameter("selfworthdescribe");
+        String selfworthselfevaluation = request.getParameter("selfworthselfevaluation")==null?"":request.getParameter("selfworthselfevaluation");
+        String selfworthgrade = request.getParameter("selfworthgrade")==null?"":request.getParameter("selfworthgrade");
+        String teamworkdescribe = request.getParameter("teamworkdescribe")==null?"":request.getParameter("teamworkdescribe");
+        String teamworkselfevaluation = request.getParameter("teamworkselfevaluation")==null?"":request.getParameter("teamworkselfevaluation");
+        String teamworkgrade = request.getParameter("teamworkgrade")==null?"":request.getParameter("teamworkgrade");
+        String customerservicedescribe = request.getParameter("customerservicedescribe")==null?"":request.getParameter("customerservicedescribe");
+        String customerserviceselfevaluation = request.getParameter("customerserviceselfevaluation")==null?"":request.getParameter("customerserviceselfevaluation");
+        String customerservicegrade = request.getParameter("customerservicegrade")==null?"":request.getParameter("customerservicegrade");
+        String commentsdepartmentheads = request.getParameter("commentsdepartmentheads")==null?"":request.getParameter("commentsdepartmentheads");
+        String companyleadersapproval = request.getParameter("companyleadersapproval")==null?"":request.getParameter("companyleadersapproval");
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        if(id==""){
+            return jacksonUtil.toJson(0);
+        }
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("time",time.replace("-","."));
+        map.put("name",name);
+        map.put("department",department);
+        map.put("cycle",cycle.replace("-",".").replace(" ~ ","--"));
+        map.put("riqi",riqi.replace("-","."));
+        map.put("grade",grade);
+        map.put("wid",wid);
+//        map.put("audit_grade",audit_grade);
+        map.put("thismonthwork",thismonthwork);
+        map.put("thismonthtarget",thismonthtarget);
+        map.put("thismonthactualperformance",thismonthactualperformance);
+        map.put("thismonthcompletionrate",thismonthcompletionrate);
+        map.put("thismonthtaskscore",thismonthtaskscore);
+        map.put("thismonthgrade",thismonthgrade);
+        map.put("lastmonthwork",lastmonthwork);
+        map.put("lastmonthtarget",lastmonthtarget);
+        map.put("lastmonthcomments",lastmonthcomments);
+        map.put("selfworthdescribe",selfworthdescribe);
+        map.put("selfworthselfevaluation",selfworthselfevaluation);
+        map.put("selfworthgrade",selfworthgrade);
+        map.put("teamworkdescribe",teamworkdescribe);
+        map.put("teamworkselfevaluation",teamworkselfevaluation);
+        map.put("teamworkgrade",teamworkgrade);
+        map.put("customerservicedescribe",customerservicedescribe);
+        map.put("customerserviceselfevaluation",customerserviceselfevaluation);
+        map.put("customerservicegrade",customerservicegrade);
+        map.put("commentsdepartmentheads",commentsdepartmentheads);
+        map.put("companyleadersapproval",companyleadersapproval);
+        map.put("id", id);
+        int count =0;
+        try {
+            //判断该用户的考核是否已被审核
+            if(evaluationManageDao.findMonthlyCheck(map).size()>0&&evaluationManageDao.findMonthlyCheck(map).get(0).get("AUDIT_GRADE")!=null){
+                return jacksonUtil.toJson(-2);
+            }
+            count += evaluationManageDao.updateMonthlyCheck_employee(map);
+            //先刪除
+            count += evaluationManageDao.deleteMonthlyCheck_thismonth(map);
+            count += evaluationManageDao.deleteMonthlyCheck_lastmonth(map);
+            for (int i = 0; i < thismonthwork.split("&nbsp;",-1).length; i++) {
+                map.put("thismonthwork",thismonthwork.split("&nbsp;",-1)[i]);
+                map.put("thismonthtarget",thismonthtarget.split("&nbsp;",-1)[i]);
+                map.put("thismonthactualperformance",thismonthactualperformance.split("&nbsp;",-1)[i]);
+                map.put("thismonthcompletionrate",thismonthcompletionrate.split("&nbsp;",-1)[i]);
+                map.put("thismonthtaskscore",thismonthtaskscore.split("&nbsp;",-1)[i]);
+                map.put("thismonthgrade",thismonthgrade.split("&nbsp;",-1)[i]);
+                count += evaluationManageDao.addMonthlyCheck_thismonth_add(map);
+            }
+            for (int i = 0; i < lastmonthwork.split("&nbsp;",-1).length; i++) {
+                map.put("lastmonthwork",lastmonthwork.split("&nbsp;",-1)[i]);
+                map.put("lastmonthtarget",lastmonthtarget.split("&nbsp;",-1)[i]);
+                map.put("lastmonthcomments",lastmonthcomments.split("&nbsp;",-1)[i]);
+                count += evaluationManageDao.addMonthlyCheck_lastmonth(map);
+            }
+            count += evaluationManageDao.updateMonthlyCheck_workquality(map);
+        }catch (Exception e){
+            System.out.println("update:"+e);
+            count =0;
+            throw new RuntimeException("事物回滚");
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    @Transactional
+    public String deleteMonthlyCheck(HttpServletRequest request) {
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("id",id);
+        int count =0;
+        try {
+            //判断该用户的考核是否已被审核
+            if(evaluationManageDao.findMonthlyCheck(map).size()>0&&evaluationManageDao.findMonthlyCheck(map).get(0).get("AUDIT_GRADE")!=null){
+                return jacksonUtil.toJson(-2);
+            }
+            count += evaluationManageDao.deleteMonthlyCheck_employee(map);
+            count += evaluationManageDao.deleteMonthlyCheck_thismonth(map);
+            count += evaluationManageDao.deleteMonthlyCheck_lastmonth(map);
+            count += evaluationManageDao.deleteMonthlyCheck_workquality(map);
+        }catch (Exception e){
+            count =0;
+            throw new RuntimeException("事物回滚");
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String findMonthlyManage(HttpServletRequest request) {
+        String time = request.getParameter("time")==null?"":request.getParameter("time");
+        String query_name = request.getParameter("name")==null?"":request.getParameter("name");
+        String username =request.getSession().getAttribute("username")==null?"":request.getSession().getAttribute("username").toString();
+
+        String name = username.equals(query_name)?query_name:username;
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("time",time.replace("-","."));
+        map.put("name",name);
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        try {
+            list = evaluationManageDao.findMonthlyCheck(map);
+        }catch (Exception e){
+            return jacksonUtil.toJson(list);
+        }
+        return jacksonUtil.toJson(list);
+    }
+
+    public String findMonthlyManageDetails(HttpServletRequest request) {
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("id",id);
+        List<Map<String, Object>> list_thismonth = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> list_lastmonth = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> list_workquality = new ArrayList<Map<String, Object>>();
+        try {
+            list_thismonth = evaluationManageDao.findMonthlyCheck_thismonth(map);
+            list_lastmonth = evaluationManageDao.findMonthlyCheck_lastmonth(map);
+            list_workquality = evaluationManageDao.findMonthlyCheck_workquality(map);
+        }catch (Exception e){
+        }
+        Map<String,Object> mapAll = new HashMap<String,Object>();
+        mapAll.put("thismonth",list_thismonth);
+        mapAll.put("lastmonth",list_lastmonth);
+        mapAll.put("workquality",list_workquality);
+        return jacksonUtil.toJson(mapAll);
+    }
+
+    @Transactional
+    public String auditMonthlyManage(HttpServletRequest request) {
+        String grade = request.getParameter("grade")==null?"":request.getParameter("grade");
+        String thismonthwork = request.getParameter("thismonthwork")==null?"":request.getParameter("thismonthwork");
+        String thismonthtarget = request.getParameter("thismonthtarget")==null?"":request.getParameter("thismonthtarget");
+        String thismonthactualperformance = request.getParameter("thismonthactualperformance")==null?"":request.getParameter("thismonthactualperformance");
+        String thismonthcompletionrate = request.getParameter("thismonthcompletionrate")==null?"":request.getParameter("thismonthcompletionrate");
+        String thismonthtaskscore = request.getParameter("thismonthtaskscore")==null?"":request.getParameter("thismonthtaskscore");
+        String thismonthgrade = request.getParameter("thismonthgrade")==null?"":request.getParameter("thismonthgrade");
+        String thismonthleaderrating = request.getParameter("thismonthleaderrating")==null?"":request.getParameter("thismonthleaderrating");
+        String thismonthreason = request.getParameter("thismonthreason")==null?"":request.getParameter("thismonthreason");
+        String selfworthdescribe = request.getParameter("selfworthdescribe")==null?"":request.getParameter("selfworthdescribe");
+        String selfworthselfevaluation = request.getParameter("selfworthselfevaluation")==null?"":request.getParameter("selfworthselfevaluation");
+        String selfworthgrade = request.getParameter("selfworthgrade")==null?"":request.getParameter("selfworthgrade");
+        String teamworkdescribe = request.getParameter("teamworkdescribe")==null?"":request.getParameter("teamworkdescribe");
+        String teamworkselfevaluation = request.getParameter("teamworkselfevaluation")==null?"":request.getParameter("teamworkselfevaluation");
+        String teamworkgrade = request.getParameter("teamworkgrade")==null?"":request.getParameter("teamworkgrade");
+        String customerservicedescribe = request.getParameter("customerservicedescribe")==null?"":request.getParameter("customerservicedescribe");
+        String customerserviceselfevaluation = request.getParameter("customerserviceselfevaluation")==null?"":request.getParameter("customerserviceselfevaluation");
+        String customerservicegrade = request.getParameter("customerservicegrade")==null?"":request.getParameter("customerservicegrade");
+        String commentsdepartmentheads = request.getParameter("commentsdepartmentheads")==null?"":request.getParameter("commentsdepartmentheads");
+        String companyleadersapproval = request.getParameter("companyleadersapproval")==null?"":request.getParameter("companyleadersapproval");
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        if(id==""){
+            return jacksonUtil.toJson(0);
+        }
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("grade",grade);
+        map.put("thismonthwork",thismonthwork);
+        map.put("thismonthtarget",thismonthtarget);
+        map.put("thismonthactualperformance",thismonthactualperformance);
+        map.put("thismonthcompletionrate",thismonthcompletionrate);
+        map.put("thismonthtaskscore",thismonthtaskscore);
+        map.put("thismonthgrade",thismonthgrade);
+        map.put("thismonthleaderrating",thismonthleaderrating);
+        map.put("thismonthreason",thismonthreason);
+        map.put("selfworthdescribe",selfworthdescribe);
+        map.put("selfworthselfevaluation",selfworthselfevaluation);
+        map.put("selfworthgrade",selfworthgrade);
+        map.put("teamworkdescribe",teamworkdescribe);
+        map.put("teamworkselfevaluation",teamworkselfevaluation);
+        map.put("teamworkgrade",teamworkgrade);
+        map.put("customerservicedescribe",customerservicedescribe);
+        map.put("customerserviceselfevaluation",customerserviceselfevaluation);
+        map.put("customerservicegrade",customerservicegrade);
+        map.put("commentsdepartmentheads",commentsdepartmentheads);
+        map.put("companyleadersapproval",companyleadersapproval);
+        map.put("id", id);
+        int count =0;
+        try {
+            count += evaluationManageDao.updateMonthlyCheck_workquality_two(map);
+            //计算总分
+            Double audit_grade=(selfworthgrade==""?0:Double.parseDouble(selfworthgrade))+(teamworkgrade==""?0:Double.parseDouble(teamworkgrade))+(customerservicegrade==""?0:Double.parseDouble(customerservicegrade))+(grade==""?0:Double.parseDouble(grade));
+            count += evaluationManageDao.updateMonthlyCheck_employee_grade(id, grade, audit_grade);
+            //先刪除
+            evaluationManageDao.deleteMonthlyCheck_thismonth(map);
+            for (int i = 0; i < thismonthwork.split("&nbsp;",-1).length; i++) {
+                map.put("thismonthwork",thismonthwork.split("&nbsp;",-1)[i]);
+                map.put("thismonthtarget",thismonthtarget.split("&nbsp;",-1)[i]);
+                map.put("thismonthactualperformance",thismonthactualperformance.split("&nbsp;",-1)[i]);
+                map.put("thismonthcompletionrate",thismonthcompletionrate.split("&nbsp;",-1)[i]);
+                map.put("thismonthtaskscore",thismonthtaskscore.split("&nbsp;",-1)[i]);
+                map.put("thismonthgrade",thismonthgrade.split("&nbsp;",-1)[i]);
+                map.put("thismonthleaderrating",thismonthleaderrating.split("&nbsp;",-1)[i]);
+//                map.put("thismonthreason",thismonthreason.split("&nbsp;",-1)[i]);
+                map.put("thismonthreason","");
+                count += evaluationManageDao.addMonthlyCheck_thismonth(map);
+            }
+        }catch (Exception e){
+            count =0;
+            e.printStackTrace();
+            throw new RuntimeException("事物回滚");
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String findMac(HttpServletRequest request) {
+        String wifi = request.getParameter("wifi")==null?"":request.getParameter("wifi");
+        String mac = request.getParameter("mac")==null?"":request.getParameter("mac");
+        String address = request.getParameter("address")==null?"":request.getParameter("address");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("wifi",wifi);
+        map.put("mac",mac);
+        map.put("address",address);
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        try {
+            list = evaluationManageDao.findMac(map);
+        }catch (Exception e){
+            return jacksonUtil.toJson(list);
+        }
+        return jacksonUtil.toJson(list);
+    }
+
+    public String addMac(HttpServletRequest request) {
+        String wifi = request.getParameter("wifi")==null?"":request.getParameter("wifi");
+        String mac = request.getParameter("mac")==null?"":request.getParameter("mac");
+        String address = request.getParameter("address")==null?"":request.getParameter("address");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("wifi",wifi);
+        map.put("mac",mac);
+        map.put("address",address);
+        map.put("id",System.currentTimeMillis());
+        int count =0;
+        try {
+            count = evaluationManageDao.addMac(map);
+        }catch (Exception e){
+            count =0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String updateMac(HttpServletRequest request) {
+        String wifi = request.getParameter("wifi")==null?"":request.getParameter("wifi");
+        String mac = request.getParameter("mac")==null?"":request.getParameter("mac");
+        String address = request.getParameter("address")==null?"":request.getParameter("address");
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("wifi",wifi);
+        map.put("mac",mac);
+        map.put("address",address);
+        map.put("id",id);
+        int count =0;
+        try {
+            count = evaluationManageDao.updateMac(map);
+        }catch (Exception e){
+            count =0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+
+    public String deleteMac(HttpServletRequest request) {
+        String id = request.getParameter("id")==null?"":request.getParameter("id");
+        Map<String,Object> map = new HashMap<String,Object>();
+        map.put("id",id);
+        int count =0;
+        try {
+            count = evaluationManageDao.deleteMac(map);
+        }catch (Exception e){
+            count =0;
+        }
+        return jacksonUtil.toJson(count);
+    }
+}
